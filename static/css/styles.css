@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; color: #111; background: #f7f7f9; }
+main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: #111; color: #fff; }
+.topbar a, .topbar .who { color: #fff; text-decoration: none; margin-right: 1rem; }
+.topbar a:hover { text-decoration: underline; }
+.brand { font-weight: 700; font-size: 1.1rem; }
+.inline { display: inline; }
+.link { background: none; border: none; color: #fff; cursor: pointer; }
+.card { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.narrow { max-width: 420px; margin: 3rem auto; }
+.card h1 { margin-top: 0; }
+label { display: block; margin-bottom: 0.75rem; font-size: 0.9rem; }
+input, select, textarea { width: 100%; padding: 0.55rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+button { padding: 0.6rem 1.1rem; border: none; background: #0b5; color: #fff; border-radius: 6px; cursor: pointer; font-weight: 600; }
+button:hover { background: #094; }
+.muted { color: #777; font-size: 0.9rem; }
+.flash { padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+.flash.error { background: #fee; color: #a00; }
+.flash.success, .flash.message { background: #efe; color: #060; }
