@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<h1>Events</h1>
+
+<nav class="subnav">
+  <a href="{{ url_for('my_clubs.index') }}">My Clubs</a>
+  <a href="{{ url_for('clubs.directory') }}">Club Directory</a>
+  <a href="{{ url_for('events.list_events') }}" class="active">Events</a>
+</nav>
+
+<form method="get" class="filters">
+  <input name="q" placeholder="Title..." value="{{ filters.q }}">
+  <select name="club">
+    <option value="">All clubs</option>
+    {% for c in clubs %}
+      <option value="{{ c.ClubID }}" {% if c.ClubID == filters.club %}selected{% endif %}>{{ c.ClubName }}</option>
+    {% endfor %}
+  </select>
+  <select name="type">
+    <option value="">All types</option>
+    {% for t in types %}
+      <option value="{{ t.EventTypeID }}" {% if t.EventTypeID == filters.type %}selected{% endif %}>{{ t.EventTypeName }}</option>
+    {% endfor %}
+  </select>
+  <select name="visibility">
+    <option value="">Any visibility</option>
+    <option value="Public"       {% if filters.visibility == 'Public'       %}selected{% endif %}>Public</option>
+    <option value="MembersOnly"  {% if filters.visibility == 'MembersOnly'  %}selected{% endif %}>Members Only</option>
+  </select>
+  <select name="sort">
+    <option value="soonest" {% if filters.sort == 'soonest' %}selected{% endif %}>Soonest</option>
+    <option value="latest"  {% if filters.sort == 'latest'  %}selected{% endif %}>Latest</option>
+  </select>
+  <button type="submit">Apply</button>
+</form>
+
+{% if events %}
+  <ul class="list">
+    {% for e in events %}
+      <li>
+        <a href="{{ url_for('events.detail', event_id=e.EventID) }}"><strong>{{ e.EventTitle }}</strong></a>
+        <span class="muted">— {{ e.ClubName }} &middot; {{ e.EventStartTime.strftime('%Y-%m-%d %H:%M') }} &middot; {{ e.BuildingName }} {{ e.RoomNumber }} &middot; {{ e.EventVisibility }}</span>
+        <p>{{ e.EventDescription|truncate(140) }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">No events match your filters.</p>
+{% endif %}
+{% endblock %}

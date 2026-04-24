@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ event.EventTitle }}{% endblock %}
+{% block content %}
+<h1>{{ event.EventTitle }}</h1>
+<p class="muted">
+  {{ event.ClubName }} &middot; {{ event.EventTypeName }} &middot; {{ event.EventVisibility }}
+</p>
+<p>
+  <strong>When:</strong> {{ event.EventStartTime.strftime('%Y-%m-%d %H:%M') }} – {{ event.EventEndTime.strftime('%Y-%m-%d %H:%M') }}<br>
+  <strong>Where:</strong> {{ event.BuildingName }} {{ event.RoomNumber }} — {{ event.HomeAddress }}<br>
+  <strong>Capacity:</strong> {{ going_count }} / {{ event.EventCapacity }} going ({{ event.SeatsLeft }} seats left)
+</p>
+<p>{{ event.EventDescription }}</p>
+
+<h2>Your RSVP</h2>
+<form method="post" action="{{ url_for('events.rsvp', event_id=event.EventID) }}" class="inline">
+  <select name="status">
+    <option value="Going"     {% if rsvp and rsvp.RSVPStatus == 'Going'     %}selected{% endif %}>Going</option>
+    <option value="Tentative" {% if rsvp and rsvp.RSVPStatus == 'Tentative' %}selected{% endif %}>Tentative</option>
+    <option value="NotGoing"  {% if rsvp and rsvp.RSVPStatus == 'NotGoing'  %}selected{% endif %}>Not going</option>
+  </select>
+  <button type="submit">Save RSVP</button>
+</form>
+
+{% if rsvp and rsvp.RSVPStatus == 'Going' %}
+  <form method="post" action="{{ url_for('events.check_in', event_id=event.EventID) }}" class="inline">
+    <button type="submit" {% if checked_in %}disabled{% endif %}>
+      {{ 'Checked in' if checked_in else 'Check in' }}
+    </button>
+  </form>
+{% endif %}
+{% endblock %}
