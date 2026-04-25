@@ -35,4 +35,8 @@ button:hover { background: #094; }
 .danger:hover { background: #a22; }
 .list { list-style: none; padding: 0; }
 .list li { padding: 0.75rem 0; border-bottom: 1px solid #eee; }
+.table { width: 100%; border-collapse: collapse; background: #fff; }
+.table th, .table td { padding: 0.6rem; border-bottom: 1px solid #eee; text-align: left; }
+.table th { background: #f1f1f4; }
+textarea { width: 100%; padding: 0.55rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
 

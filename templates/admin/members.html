@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set active = 'members' %}
+{% block title %}{{ club.ClubName }} — Members{% endblock %}
+{% block content %}
+<h1>{{ club.ClubName }} — Members</h1>
+{% include "admin/_nav.html" %}
+
+<table class="table">
+  <thead>
+    <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for m in members %}
+      <tr>
+        <td>{{ m.FirstName }} {{ m.LastName }}</td>
+        <td>{{ m.Email }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.update_member_role', club_id=club.ClubID, user_id=m.UserID) }}" class="inline">
+            <select name="role">
+              <option value="Owner"   {% if m.MembershipRole == 'Owner'   %}selected{% endif %}>Owner</option>
+              <option value="Officer" {% if m.MembershipRole == 'Officer' %}selected{% endif %}>Officer</option>
+              <option value="Member"  {% if m.MembershipRole == 'Member'  %}selected{% endif %}>Member</option>
+            </select>
+            <button type="submit">Save</button>
+          </form>
+        </td>
+        <td>{{ m.MembershipStatus }}</td>
+        <td>{{ m.MembershipJoinDate.strftime('%Y-%m-%d') }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.remove_member', club_id=club.ClubID, user_id=m.UserID) }}" class="inline">
+            <button class="danger" type="submit">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

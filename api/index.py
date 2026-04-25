@@ -9,7 +9,7 @@ from flask import Flask, g, redirect, url_for
 from config import Config
 import auth
 from db import close_db
-from blueprints import clubs, events, my_clubs
+from blueprints import admin, announcements, clubs, events, export, my_clubs, public
 
 
 def create_app() -> Flask:
@@ -25,6 +25,10 @@ def create_app() -> Flask:
     app.register_blueprint(my_clubs.bp)
     app.register_blueprint(clubs.bp)
     app.register_blueprint(events.bp)
+    app.register_blueprint(admin.bp)
+    app.register_blueprint(announcements.bp)
+    app.register_blueprint(public.bp)
+    app.register_blueprint(export.bp)
 
     @app.route("/")
     def index():

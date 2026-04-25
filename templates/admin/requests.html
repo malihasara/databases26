@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set active = 'requests' %}
+{% block title %}{{ club.ClubName }} — Requests{% endblock %}
+{% block content %}
+<h1>{{ club.ClubName }} — Join Requests</h1>
+{% include "admin/_nav.html" %}
+
+{% if requests %}
+<table class="table">
+  <thead><tr><th>Requester</th><th>Email</th><th>Status</th><th>When</th><th></th></tr></thead>
+  <tbody>
+    {% for r in requests %}
+      <tr>
+        <td>{{ r.FirstName }} {{ r.LastName }}</td>
+        <td>{{ r.Email }}</td>
+        <td>{{ r.RequestStatus }}</td>
+        <td>{{ r.RequestTime.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          {% if r.RequestStatus == 'Pending' %}
+            <form method="post" action="{{ url_for('admin.approve_request', club_id=club.ClubID, request_id=r.RequestID) }}" class="inline">
+              <button type="submit">Approve</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.reject_request', club_id=club.ClubID, request_id=r.RequestID) }}" class="inline">
+              <button class="danger" type="submit">Reject</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="muted">No requests yet.</p>
+{% endif %}
+{% endblock %}

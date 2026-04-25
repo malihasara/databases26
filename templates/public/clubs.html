@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Public — Clubs{% endblock %}
+{% block content %}
+<h1>Public Club Directory</h1>
+<p class="muted">Browse without an account. <a href="{{ url_for('auth.register') }}">Register</a> to join clubs and RSVP.</p>
+
+<form method="get" class="filters">
+  <input name="q" placeholder="Search by name..." value="{{ q }}">
+  <button type="submit">Search</button>
+</form>
+
+{% if clubs %}
+  <div class="grid">
+    {% for c in clubs %}
+      <div class="card tile">
+        <h3>{{ c.ClubName }}</h3>
+        <p class="muted">{{ c.CategoryName }}</p>
+        <p>{{ c.ClubDescription|truncate(140) }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted">No clubs found.</p>
+{% endif %}
+{% endblock %}

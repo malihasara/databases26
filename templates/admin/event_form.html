@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% set active = 'events' %}
+{% block title %}{{ 'Edit' if event else 'New' }} event — {{ club.ClubName }}{% endblock %}
+{% block content %}
+<h1>{{ 'Edit' if event else 'New' }} event — {{ club.ClubName }}</h1>
+{% include "admin/_nav.html" %}
+
+<form method="post" class="card">
+  <label>Title<input name="title" required value="{{ event.EventTitle if event else '' }}"></label>
+  <label>Description<textarea name="description" rows="4" required>{{ event.EventDescription if event else '' }}</textarea></label>
+  <label>Start<input name="start" type="datetime-local" required
+    value="{{ event.EventStartTime.strftime('%Y-%m-%dT%H:%M') if event else '' }}"></label>
+  <label>End<input name="end" type="datetime-local" required
+    value="{{ event.EventEndTime.strftime('%Y-%m-%dT%H:%M') if event else '' }}"></label>
+  <label>Capacity<input name="capacity" type="number" min="1" required
+    value="{{ event.EventCapacity if event else 30 }}"></label>
+  <label>Visibility
+    <select name="visibility">
+      <option value="Public"      {% if event and event.EventVisibility == 'Public'      %}selected{% endif %}>Public</option>
+      <option value="MembersOnly" {% if event and event.EventVisibility == 'MembersOnly' %}selected{% endif %}>Members only</option>
+    </select>
+  </label>
+  <label>Location
+    <select name="location_id">
+      {% for l in locations %}
+        <option value="{{ l.LocationID }}" {% if event and event.LocationID == l.LocationID %}selected{% endif %}>
+          {{ l.BuildingName }} {{ l.RoomNumber }}
+        </option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Type
+    <select name="type_id">
+      {% for t in types %}
+        <option value="{{ t.EventTypeID }}" {% if event and event.EventTypeID == t.EventTypeID %}selected{% endif %}>{{ t.EventTypeName }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% if event %}
+    <label>Status
+      <select name="status">
+        <option value="Scheduled" {% if event.EventStatus == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+        <option value="Cancelled" {% if event.EventStatus == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        <option value="Completed" {% if event.EventStatus == 'Completed' %}selected{% endif %}>Completed</option>
+      </select>
+    </label>
+  {% endif %}
+  <button type="submit">{{ 'Save changes' if event else 'Create event' }}</button>
+</form>
+{% endblock %}

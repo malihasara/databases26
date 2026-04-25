@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Public — Events{% endblock %}
+{% block content %}
+<h1>Public Events</h1>
+<p class="muted"><a href="{{ url_for('auth.register') }}">Register</a> to RSVP and check in.</p>
+
+<form method="get" class="filters">
+  <input name="q" placeholder="Search by title..." value="{{ q }}">
+  <button type="submit">Search</button>
+</form>
+
+{% if events %}
+  <ul class="list">
+    {% for e in events %}
+      <li>
+        <strong>{{ e.EventTitle }}</strong>
+        <span class="muted">— {{ e.ClubName }} &middot; {{ e.EventStartTime.strftime('%Y-%m-%d %H:%M') }} &middot; {{ e.BuildingName }} {{ e.RoomNumber }}</span>
+        <p>{{ e.EventDescription|truncate(180) }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">No public events scheduled.</p>
+{% endif %}
+{% endblock %}

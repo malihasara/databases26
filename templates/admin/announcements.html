@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% set active = 'announcements' %}
+{% block title %}{{ club.ClubName }} — Announcements{% endblock %}
+{% block content %}
+<h1>{{ club.ClubName }} — Announcements</h1>
+{% include "admin/_nav.html" %}
+
+<form method="post" action="{{ url_for('announcements.create', club_id=club.ClubID) }}" class="card">
+  <label>Title<input name="title" required></label>
+  <label>Body<textarea name="body" rows="3" required></textarea></label>
+  <button type="submit">Post</button>
+</form>
+
+<ul class="list">
+  {% for a in announcements %}
+    <li>
+      <strong>{{ a.AnnouncementTitle }}</strong>
+      <span class="muted">— {{ a.FirstName }} {{ a.LastName }} on {{ a.AnnouncementDate.strftime('%Y-%m-%d') }}</span>
+      <form method="post" action="{{ url_for('announcements.delete', club_id=club.ClubID, announcement_id=a.AnnouncementID) }}" class="inline">
+        <button class="danger" type="submit">Delete</button>
+      </form>
+    </li>
+  {% else %}
+    <li class="muted">No announcements yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
