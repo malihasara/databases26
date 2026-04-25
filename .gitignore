@@ -4,5 +4,7 @@ __pycache__/
 .env
 .env.local
 .vercel/
-*.sqlite
+node_modules/
+frontend/dist/
+*.log
 .DS_Store

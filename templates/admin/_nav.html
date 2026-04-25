@@ -1,8 +1,0 @@
-<nav class="subnav">
-  <a href="{{ url_for('admin.dashboard', club_id=club.ClubID) }}"          class="{% if active == 'dashboard'     %}active{% endif %}">Dashboard</a>
-  <a href="{{ url_for('admin.members', club_id=club.ClubID) }}"            class="{% if active == 'members'       %}active{% endif %}">Members</a>
-  <a href="{{ url_for('admin.requests_view', club_id=club.ClubID) }}"      class="{% if active == 'requests'      %}active{% endif %}">Requests</a>
-  <a href="{{ url_for('admin.events_view', club_id=club.ClubID) }}"        class="{% if active == 'events'        %}active{% endif %}">Events</a>
-  <a href="{{ url_for('announcements.list_view', club_id=club.ClubID) }}"  class="{% if active == 'announcements' %}active{% endif %}">Announcements</a>
-  <a href="{{ url_for('clubs.detail', club_id=club.ClubID) }}">Back to club</a>
-</nav>
