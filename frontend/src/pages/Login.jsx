@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import TorchLogo from "../components/TorchLogo.jsx";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { user, loading, login } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [role, setRole] = useState("Student");
@@ -12,12 +12,18 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
 
+  if (loading) return <main className="container narrow"><p>Loading…</p></main>;
+  if (user) {
+    const home = params.get("next") || (user.AccountType === "Faculty" ? "/admin-portal" : "/my-clubs");
+    return <Navigate to={home} replace />;
+  }
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErr("");
     try {
-      const user = await login(email, password, role);
-      const next = params.get("next") || (user.AccountType === "Faculty" ? "/admin-portal" : "/my-clubs");
+      const u = await login(email, password, role);
+      const next = params.get("next") || (u.AccountType === "Faculty" ? "/admin-portal" : "/my-clubs");
       navigate(next, { replace: true });
     } catch (e) {
       setErr(e.message);

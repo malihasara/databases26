@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, g, jsonify, request
 
 from auth import login_required
@@ -104,6 +105,15 @@ def rsvp(event_id):
     if status not in ("Going", "NotGoing", "Tentative"):
         return jsonify(error="invalid status"), 400
 
+    ev = query(
+        "SELECT EventEndTime, EventStatus FROM Event WHERE EventID = %s",
+        (event_id,), one=True,
+    )
+    if not ev:
+        return jsonify(error="event not found"), 404
+    if ev["EventStatus"] != "Scheduled" or ev["EventEndTime"] <= datetime.now():
+        return jsonify(error="RSVP closed: event has ended or is not scheduled"), 400
+
     existing = query(
         "SELECT RSVPID FROM RSVP WHERE EventID = %s AND UserID = %s",
         (event_id, g.user["UserID"]), one=True,
@@ -125,6 +135,15 @@ def rsvp(event_id):
 @bp.post("/<event_id>/check-in")
 @login_required
 def check_in(event_id):
+    ev = query(
+        "SELECT EventStartTime, EventEndTime, EventStatus FROM Event WHERE EventID = %s",
+        (event_id,), one=True,
+    )
+    if not ev:
+        return jsonify(error="event not found"), 404
+    if ev["EventStatus"] == "Cancelled":
+        return jsonify(error="event was cancelled"), 400
+
     rsvp_row = query(
         "SELECT RSVPID FROM RSVP WHERE EventID = %s AND UserID = %s AND RSVPStatus = 'Going'",
         (event_id, g.user["UserID"]), one=True,

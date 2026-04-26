@@ -155,6 +155,12 @@ h3 { font-size: 1.05rem; font-weight: 600; letter-spacing: 0; }
   color: var(--violet-100);
   border-color: var(--violet-700);
 }
+
+.role-pill.state-Present  { background: #e3f4e6; color: var(--success); }
+.role-pill.state-Noshow   { background: #fbeae8; color: var(--danger); }
+[data-theme="dark"] .role-pill.state-Present { background: rgba(127, 208, 137, 0.18); color: #b6e8bc; }
+[data-theme="dark"] .role-pill.state-Noshow  { background: rgba(255, 138, 130, 0.18); color: #ffb1ab; }
+.table td button + button { margin-left: 0.4rem; }
 .link {
   background: none; border: none; cursor: pointer;
   color: var(--ink-soft); font: inherit; padding: 0.45rem 0.75rem;

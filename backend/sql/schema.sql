@@ -110,7 +110,7 @@ CREATE TABLE RSVP (
     UNIQUE (EventID, UserID),
     FOREIGN KEY (EventID) REFERENCES Event(EventID),
     FOREIGN KEY (UserID)  REFERENCES User(UserID),
-    CONSTRAINT chk_rsvp_status CHECK (RSVPStatus IN ('Going','NotGoing','Tentative'))
+    CONSTRAINT chk_rsvp_status CHECK (RSVPStatus IN ('Going','NotGoing','Tentative','NoShow'))
 );
 
 CREATE TABLE Attendance (

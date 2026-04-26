@@ -21,6 +21,9 @@ export default function EventDetail() {
   if (!data) return <main className="container"><p>Loading…</p></main>;
 
   const { event, rsvp, checked_in, going_count } = data;
+  const ended = new Date(event.EventEndTime) <= new Date();
+  const cancelled = event.EventStatus === "Cancelled";
+  const rsvpClosed = ended || cancelled;
 
   const saveRsvp = async () => {
     setErr(""); setMsg("");
@@ -48,19 +51,32 @@ export default function EventDetail() {
       {err && <div className="error">{err}</div>}
 
       <h2>Your RSVP</h2>
-      <div className="actions">
-        <select value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="Going">Going</option>
-          <option value="Tentative">Tentative</option>
-          <option value="NotGoing">Not going</option>
-        </select>
-        <button onClick={saveRsvp}>Save RSVP</button>
-        {rsvp?.RSVPStatus === "Going" && (
-          <button onClick={checkIn} disabled={checked_in}>
-            {checked_in ? "Checked in" : "Check in"}
-          </button>
-        )}
-      </div>
+      {rsvpClosed ? (
+        <div className="info-banner">
+          {cancelled
+            ? "This event was cancelled. RSVP is closed."
+            : "This event has ended. RSVP is closed."}
+          {rsvp?.RSVPStatus && (
+            <> Your last response was <strong>{rsvp.RSVPStatus}</strong>.
+              {checked_in ? " You were checked in." : ""}
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="actions">
+          <select value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="Going">Going</option>
+            <option value="Tentative">Tentative</option>
+            <option value="NotGoing">Not going</option>
+          </select>
+          <button onClick={saveRsvp}>Save RSVP</button>
+          {rsvp?.RSVPStatus === "Going" && (
+            <button onClick={checkIn} disabled={checked_in}>
+              {checked_in ? "Checked in" : "Check in"}
+            </button>
+          )}
+        </div>
+      )}
     </main>
   );
 }

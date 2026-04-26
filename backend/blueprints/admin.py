@@ -243,7 +243,40 @@ def officer_check_in(club_id, event_id, rsvp_id):
     ):
         return jsonify(ok=True, already=True)
     execute(
+        "UPDATE RSVP SET RSVPStatus = 'Going' WHERE RSVPID = %s AND RSVPStatus = 'NoShow'",
+        (rsvp_id,),
+    )
+    execute(
         "INSERT INTO Attendance (EventID, RSVPID, CheckInMethod) VALUES (%s, %s, 'Manual')",
         (event_id, rsvp_id),
     )
+    return jsonify(ok=True)
+
+
+@bp.post("/events/<event_id>/no-show/<rsvp_id>")
+@officer_required()
+def officer_no_show(club_id, event_id, rsvp_id):
+    rsvp = query(
+        "SELECT EventID FROM RSVP WHERE RSVPID = %s",
+        (rsvp_id,), one=True,
+    )
+    if not rsvp or rsvp["EventID"] != event_id:
+        return jsonify(error="rsvp not found for this event"), 404
+    execute("DELETE FROM Attendance WHERE EventID = %s AND RSVPID = %s", (event_id, rsvp_id))
+    execute("UPDATE RSVP SET RSVPStatus = 'NoShow' WHERE RSVPID = %s", (rsvp_id,))
+    return jsonify(ok=True)
+
+
+@bp.post("/events/<event_id>/reset/<rsvp_id>")
+@officer_required()
+def officer_reset_rsvp(club_id, event_id, rsvp_id):
+    rsvp = query(
+        "SELECT EventID, RSVPStatus FROM RSVP WHERE RSVPID = %s",
+        (rsvp_id,), one=True,
+    )
+    if not rsvp or rsvp["EventID"] != event_id:
+        return jsonify(error="rsvp not found for this event"), 404
+    execute("DELETE FROM Attendance WHERE EventID = %s AND RSVPID = %s", (event_id, rsvp_id))
+    if rsvp["RSVPStatus"] == "NoShow":
+        execute("UPDATE RSVP SET RSVPStatus = 'Going' WHERE RSVPID = %s", (rsvp_id,))
     return jsonify(ok=True)

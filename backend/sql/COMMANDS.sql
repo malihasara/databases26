@@ -137,7 +137,7 @@ CREATE TABLE RSVP (
     UNIQUE (EventID, UserID),
     FOREIGN KEY (EventID) REFERENCES Event(EventID),
     FOREIGN KEY (UserID)  REFERENCES User(UserID),
-    CONSTRAINT chk_rsvp_status CHECK (RSVPStatus IN ('Going','NotGoing','Tentative'))
+    CONSTRAINT chk_rsvp_status CHECK (RSVPStatus IN ('Going','NotGoing','Tentative','NoShow'))
 );
 
 CREATE TABLE Attendance (
@@ -744,6 +744,9 @@ WHERE ClubID = %s AND UserID = %s AND MembershipStatus = 'Active';
 -- The viewer's existing RSVP for this event (if any).
 SELECT RSVPID, RSVPStatus FROM RSVP WHERE EventID = %s AND UserID = %s;
 
+-- Gate RSVP creation/update on whether the event is still open.
+SELECT EventEndTime, EventStatus FROM Event WHERE EventID = %s;
+
 -- Has the viewer already checked in?
 SELECT 1 FROM Attendance WHERE EventID = %s AND RSVPID = %s;
 
@@ -852,10 +855,27 @@ LEFT JOIN Attendance a ON a.RSVPID = r.RSVPID AND a.EventID = r.EventID
 WHERE r.EventID = %s
 ORDER BY r.RSVPStatus, u.LastName;
 
--- Officer-driven manual check-in.
+-- Officer-driven manual check-in: marks the attendee Present. If they were
+-- previously flagged NoShow we restore RSVPStatus to Going so the seat counts.
 SELECT 1 FROM Attendance WHERE EventID = %s AND RSVPID = %s;
+UPDATE RSVP SET RSVPStatus = 'Going'
+WHERE RSVPID = %s AND RSVPStatus = 'NoShow';
 INSERT INTO Attendance (EventID, RSVPID, CheckInMethod)
 VALUES (%s, %s, 'Manual');
+
+-- Officer marks an attendee as a no-show. We delete any stale Attendance row
+-- and flip RSVPStatus to 'NoShow'; the capacity trigger only counts
+-- RSVPStatus = 'Going', so the seat is freed for someone else.
+SELECT EventID FROM RSVP WHERE RSVPID = %s;
+DELETE FROM Attendance WHERE EventID = %s AND RSVPID = %s;
+UPDATE RSVP SET RSVPStatus = 'NoShow' WHERE RSVPID = %s;
+
+-- Officer resets an attendee back to "going, not yet checked in" — useful if
+-- Present or NoShow was clicked by mistake.
+SELECT EventID, RSVPStatus FROM RSVP WHERE RSVPID = %s;
+DELETE FROM Attendance WHERE EventID = %s AND RSVPID = %s;
+UPDATE RSVP SET RSVPStatus = 'Going'
+WHERE RSVPID = %s;
 
 
 -- ----------------------------------------------------------------------------
