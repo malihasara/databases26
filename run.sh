@@ -28,7 +28,7 @@ trap cleanup EXIT INT TERM
   cd backend
   exec ../.venv/bin/python -m flask --app api.index run --host 0.0.0.0 --port 5000 --debug
 ) &
-
+ 
 (
   cd frontend
   exec npm run dev -- --host 0.0.0.0
