@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Route, Routes } from "react-router-dom";
 import { api } from "../api";
+import { fmtDate, fmtDateTime } from "../format.js";
 
 
 function PortalNav({ pendingCount }) {
@@ -119,7 +120,7 @@ function Users() {
                     <option value="Inactive">Inactive</option>
                   </select>
                 </td>
-                <td>{u.AccountCreationDate?.slice(0, 10)}</td>
+                <td>{fmtDate(u.AccountCreationDate)}</td>
               </tr>
             ))}
           </tbody>
@@ -159,7 +160,7 @@ function FacultyApprovals({ onChange }) {
             <strong>{r.FirstName} {r.LastName}</strong>
             <span className="muted"> · {r.Email}</span>
             <div className="muted small">
-              requested {r.FacultyRequestTime ? new Date(r.FacultyRequestTime).toLocaleString() : "—"}
+              requested {r.FacultyRequestTime ? fmtDateTime(r.FacultyRequestTime) : "—"}
             </div>
           </div>
           <div className="actions">
@@ -189,7 +190,7 @@ function Attendance() {
           <tr key={e.EventID}>
             <td>{e.EventTitle}</td>
             <td>{e.ClubName}</td>
-            <td>{new Date(e.EventStartTime).toLocaleString()}</td>
+            <td>{fmtDateTime(e.EventStartTime)}</td>
             <td>{e.going}</td>
             <td>{e.attended}</td>
             <td>{e.EventCapacity}</td>
@@ -207,7 +208,7 @@ function Clubs() {
   const [err, setErr] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
-  const [form, setForm] = useState({ name: "", description: "", category_id: "", owner_user_id: "" });
+  const [form, setForm] = useState({ name: "", description: "", category_id: "", officer_user_id: "" });
 
   const load = () => {
     api.get("/api/admin-portal/club-options").then(setOpts).catch(e => setErr(e.message));
@@ -221,7 +222,7 @@ function Clubs() {
     try {
       await api.post("/api/admin-portal/clubs", form);
       setShowCreate(false);
-      setForm({ name: "", description: "", category_id: "", owner_user_id: "" });
+      setForm({ name: "", description: "", category_id: "", officer_user_id: "" });
       load();
     } catch (e) { setErr(e.message); }
   };
@@ -257,8 +258,8 @@ function Clubs() {
                 {opts?.categories.map(c => <option key={c.CategoryID} value={c.CategoryID}>{c.CategoryName}</option>)}
               </select>
             </label>
-            <label>Owner
-              <select value={form.owner_user_id} onChange={e => setForm({...form, owner_user_id: e.target.value})} required>
+            <label>Officer
+              <select value={form.officer_user_id} onChange={e => setForm({...form, officer_user_id: e.target.value})} required>
                 <option value="">—</option>
                 {opts?.owners.map(o => <option key={o.UserID} value={o.UserID}>{o.FirstName} {o.LastName} · {o.Email}</option>)}
               </select>

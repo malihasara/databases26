@@ -1,5 +1,3 @@
-USE club_organizations;
-
 DROP TRIGGER IF EXISTS trg_rsvp_capacity_insert;
 DELIMITER //
 CREATE TRIGGER trg_rsvp_capacity_insert
@@ -116,13 +114,14 @@ END //
 DELIMITER ;
 
 DROP PROCEDURE IF EXISTS sp_create_club_with_owner;
+DROP PROCEDURE IF EXISTS sp_create_club_with_officer;
 DELIMITER //
-CREATE PROCEDURE sp_create_club_with_owner(
+CREATE PROCEDURE sp_create_club_with_officer(
     IN p_club_id CHAR(5),
     IN p_name VARCHAR(80),
     IN p_desc TEXT,
     IN p_category_id CHAR(5),
-    IN p_owner_user_id CHAR(5)
+    IN p_officer_user_id CHAR(5)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -138,7 +137,7 @@ BEGIN
         INSERT INTO ClubMembership
             (ClubID, UserID, MembershipRole, MembershipStatus, MembershipJoinDate)
         VALUES
-            (p_club_id, p_owner_user_id, 'Owner', 'Active', CURDATE());
+            (p_club_id, p_officer_user_id, 'Officer', 'Active', CURDATE());
     COMMIT;
 END //
 DELIMITER ;
@@ -181,23 +180,31 @@ END //
 DELIMITER ;
 
 DROP TRIGGER IF EXISTS trg_protect_last_owner_delete;
+DROP TRIGGER IF EXISTS trg_protect_last_officer_delete;
 DELIMITER //
-CREATE TRIGGER trg_protect_last_owner_delete
+CREATE TRIGGER trg_protect_last_officer_delete
 BEFORE DELETE ON ClubMembership
 FOR EACH ROW
 BEGIN
-    DECLARE remaining_owners INT;
+    DECLARE remaining_officers INT;
+    DECLARE other_members INT;
 
-    IF OLD.MembershipRole = 'Owner' THEN
-        SELECT COUNT(*) INTO remaining_owners
+    IF OLD.MembershipRole = 'Officer' THEN
+        SELECT COUNT(*) INTO other_members
         FROM ClubMembership
-        WHERE ClubID = OLD.ClubID
-          AND MembershipRole = 'Owner'
-          AND NOT (UserID = OLD.UserID);
+        WHERE ClubID = OLD.ClubID AND NOT (UserID = OLD.UserID);
 
-        IF remaining_owners = 0 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Cannot remove the last Owner of a club.';
+        IF other_members > 0 THEN
+            SELECT COUNT(*) INTO remaining_officers
+            FROM ClubMembership
+            WHERE ClubID = OLD.ClubID
+              AND MembershipRole = 'Officer'
+              AND NOT (UserID = OLD.UserID);
+
+            IF remaining_officers = 0 THEN
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Cannot remove the last Officer while members remain.';
+            END IF;
         END IF;
     END IF;
 END //

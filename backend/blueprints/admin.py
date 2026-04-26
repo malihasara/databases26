@@ -34,7 +34,7 @@ def members(club_id):
                u.FirstName, u.LastName, u.Email
         FROM ClubMembership cm JOIN User u ON u.UserID = cm.UserID
         WHERE cm.ClubID = %s
-        ORDER BY FIELD(cm.MembershipRole,'Owner','Officer','Member'), u.LastName
+        ORDER BY FIELD(cm.MembershipRole,'Officer','Member'), u.LastName
         """,
         (club_id,),
     )
@@ -46,7 +46,7 @@ def members(club_id):
 def update_member_role(club_id, user_id):
     body = request.get_json(silent=True) or {}
     role = body.get("role")
-    if role not in ("Owner", "Officer", "Member"):
+    if role not in ("Officer", "Member"):
         return jsonify(error="invalid role"), 400
     execute(
         "UPDATE ClubMembership SET MembershipRole = %s WHERE ClubID = %s AND UserID = %s",

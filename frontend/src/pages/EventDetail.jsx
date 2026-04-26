@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
+import { fmtDateTime } from "../format.js";
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -37,7 +38,7 @@ export default function EventDetail() {
       <h1>{event.EventTitle}</h1>
       <p className="muted">{event.ClubName} · {event.EventTypeName} · {event.EventVisibility}</p>
       <p>
-        <strong>When:</strong> {new Date(event.EventStartTime).toLocaleString()} – {new Date(event.EventEndTime).toLocaleString()}<br/>
+        <strong>When:</strong> {fmtDateTime(event.EventStartTime)} – {fmtDateTime(event.EventEndTime)}<br/>
         <strong>Where:</strong> {event.BuildingName} {event.RoomNumber} — {event.HomeAddress}<br/>
         <strong>Capacity:</strong> {going_count} / {event.EventCapacity} going ({event.SeatsLeft} seats left)
       </p>

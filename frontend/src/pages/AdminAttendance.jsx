@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import AdminNav from "./AdminNav.jsx";
+import { fmtDateTime } from "../format.js";
 
 export default function AdminAttendance() {
   const { clubId, eventId } = useParams();
@@ -36,7 +37,7 @@ export default function AdminAttendance() {
               <td>{r.FirstName} {r.LastName}</td>
               <td>{r.Email}</td>
               <td>{r.RSVPStatus}</td>
-              <td>{r.CheckInTime ? new Date(r.CheckInTime).toLocaleString() : "—"}</td>
+              <td>{r.CheckInTime ? fmtDateTime(r.CheckInTime) : "—"}</td>
               <td>{r.CheckInMethod || "—"}</td>
               <td>{r.RSVPStatus === "Going" && !r.CheckInTime &&
                 <button onClick={() => checkIn(r.RSVPID)}>Check in</button>}</td>

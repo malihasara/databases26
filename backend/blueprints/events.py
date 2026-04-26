@@ -16,6 +16,7 @@ def list_events():
     q = request.args.get("q", "").strip()
     sort = request.args.get("sort", "soonest")
 
+    is_faculty = g.user.get("AccountType") == "Faculty"
     sql = [
         "SELECT e.EventID, e.EventTitle, e.EventDescription, e.EventStartTime,",
         "       e.EventEndTime, e.EventCapacity, e.EventStatus, e.EventVisibility,",
@@ -24,11 +25,15 @@ def list_events():
         "JOIN Club c      ON c.ClubID      = e.ClubID",
         "JOIN EventType t ON t.EventTypeID = e.EventTypeID",
         "JOIN Location l  ON l.LocationID  = e.LocationID",
-        "LEFT JOIN ClubMembership cm ON cm.ClubID = e.ClubID AND cm.UserID = %s AND cm.MembershipStatus='Active'",
-        "WHERE e.EventStatus = 'Scheduled'",
-        "AND (e.EventVisibility = 'Public' OR cm.UserID IS NOT NULL)",
     ]
-    params = [g.user["UserID"]]
+    params = []
+    if is_faculty:
+        sql.append("WHERE e.EventStatus = 'Scheduled'")
+    else:
+        sql.append("LEFT JOIN ClubMembership cm ON cm.ClubID = e.ClubID AND cm.UserID = %s AND cm.MembershipStatus='Active'")
+        sql.append("WHERE e.EventStatus = 'Scheduled'")
+        sql.append("AND (e.EventVisibility = 'Public' OR cm.UserID IS NOT NULL)")
+        params.append(g.user["UserID"])
     if club_id:
         sql.append("AND e.ClubID = %s"); params.append(club_id)
     if type_id:
@@ -63,6 +68,16 @@ def detail(event_id):
     )
     if not event:
         return jsonify(error="event not found"), 404
+
+    is_faculty = g.user.get("AccountType") == "Faculty"
+    if event["EventVisibility"] == "MembersOnly" and not is_faculty:
+        member = query(
+            "SELECT 1 FROM ClubMembership "
+            "WHERE ClubID = %s AND UserID = %s AND MembershipStatus = 'Active'",
+            (event["ClubID"], g.user["UserID"]), one=True,
+        )
+        if not member:
+            return jsonify(error="this event is members-only"), 403
 
     rsvp = query(
         "SELECT RSVPID, RSVPStatus FROM RSVP WHERE EventID = %s AND UserID = %s",

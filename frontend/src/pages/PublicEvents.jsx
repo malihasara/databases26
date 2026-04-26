@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
+import { fmtDateTime } from "../format.js";
 
 export default function PublicEvents() {
   const [events, setEvents] = useState(null);
@@ -27,7 +28,7 @@ export default function PublicEvents() {
           {events.map(e => (
             <li key={e.EventID}>
               <strong>{e.EventTitle}</strong>
-              <span className="muted"> — {e.ClubName} · {new Date(e.EventStartTime).toLocaleString()} · {e.BuildingName} {e.RoomNumber}</span>
+              <span className="muted"> — {e.ClubName} · {fmtDateTime(e.EventStartTime)} · {e.BuildingName} {e.RoomNumber}</span>
               <p>{e.EventDescription}</p>
             </li>
           ))}

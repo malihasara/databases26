@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
 import AdminNav from "./AdminNav.jsx";
+import { fmtDate } from "../format.js";
 
 export default function AdminMembers() {
   const { clubId } = useParams();
@@ -38,13 +39,12 @@ export default function AdminMembers() {
                 <td>{m.Email}</td>
                 <td>
                   <select value={m.MembershipRole} onChange={e => setRole(m.UserID, e.target.value)}>
-                    <option value="Owner">Owner</option>
                     <option value="Officer">Officer</option>
                     <option value="Member">Member</option>
                   </select>
                 </td>
                 <td>{m.MembershipStatus}</td>
-                <td>{m.MembershipJoinDate?.slice(0, 10)}</td>
+                <td>{fmtDate(m.MembershipJoinDate)}</td>
                 <td><button className="danger" onClick={() => remove(m.UserID)}>Remove</button></td>
               </tr>
             ))}

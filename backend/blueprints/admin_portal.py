@@ -160,13 +160,13 @@ def create_club():
     name = (body.get("name") or "").strip()
     desc = (body.get("description") or "").strip()
     category_id = body.get("category_id")
-    owner_user_id = body.get("owner_user_id")
-    if not (name and desc and category_id and owner_user_id):
+    officer_user_id = body.get("officer_user_id") or body.get("owner_user_id")
+    if not (name and desc and category_id and officer_user_id):
         return jsonify(error="all fields required"), 400
     new_id = next_id("CL", "Club", "ClubID")
     try:
         from db import call_proc
-        call_proc("sp_create_club_with_owner", (new_id, name, desc, category_id, owner_user_id))
+        call_proc("sp_create_club_with_officer", (new_id, name, desc, category_id, officer_user_id))
     except Exception as exc:
         return jsonify(error=str(exc).split(":")[-1].strip()), 400
     return jsonify(ok=True, club_id=new_id)

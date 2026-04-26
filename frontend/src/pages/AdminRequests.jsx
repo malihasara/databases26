@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
 import AdminNav from "./AdminNav.jsx";
+import { fmtDateTime } from "../format.js";
 
 export default function AdminRequests() {
   const { clubId } = useParams();
@@ -31,7 +32,7 @@ export default function AdminRequests() {
                 <td>{r.FirstName} {r.LastName}</td>
                 <td>{r.Email}</td>
                 <td>{r.RequestStatus}</td>
-                <td>{new Date(r.RequestTime).toLocaleString()}</td>
+                <td>{fmtDateTime(r.RequestTime)}</td>
                 <td>
                   {r.RequestStatus === "Pending" && (
                     <>

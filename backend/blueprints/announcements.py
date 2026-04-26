@@ -14,7 +14,7 @@ def list_view(club_id):
     rows = query(
         """
         SELECT a.AnnouncementID, a.AnnouncementTitle, a.AnnouncementBody, a.AnnouncementDate,
-               u.FirstName, u.LastName
+               a.AnnouncementVisibility, u.FirstName, u.LastName
         FROM Announcement a JOIN User u ON u.UserID = a.UserID
         WHERE a.ClubID = %s
         ORDER BY a.AnnouncementDate DESC
@@ -30,13 +30,17 @@ def create(club_id):
     body = request.get_json(silent=True) or {}
     title = (body.get("title") or "").strip()
     text = (body.get("body") or "").strip()
+    visibility = body.get("visibility") or "Public"
+    if visibility not in ("Public", "MembersOnly"):
+        return jsonify(error="invalid visibility"), 400
     if not (title and text):
         return jsonify(error="title and body required"), 400
     new_id = next_id("AN", "Announcement", "AnnouncementID")
     execute(
         "INSERT INTO Announcement (AnnouncementID, AnnouncementTitle, AnnouncementBody, "
-        "AnnouncementDate, ClubID, UserID) VALUES (%s, %s, %s, %s, %s, %s)",
-        (new_id, title, text, date.today(), club_id, g.user["UserID"]),
+        "AnnouncementDate, AnnouncementVisibility, ClubID, UserID) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (new_id, title, text, date.today(), visibility, club_id, g.user["UserID"]),
     )
     return jsonify(ok=True, announcement_id=new_id)
 

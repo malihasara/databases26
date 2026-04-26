@@ -56,7 +56,7 @@ def officer_required(club_id_param="club_id"):
                 (club_id, g.user["UserID"]),
                 one=True,
             )
-            if not row or row["MembershipRole"] not in ("Owner", "Officer"):
+            if not row or row["MembershipRole"] != "Officer":
                 return jsonify(error="officer access required"), 403
             return view(*args, **kwargs)
         return wrapped

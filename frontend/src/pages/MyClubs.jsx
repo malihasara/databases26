@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
+import { fmtDateTime } from "../format.js";
+import { useAuth } from "../auth.jsx";
 
 function ClubCard({ club, manage }) {
   return (
@@ -25,15 +27,20 @@ function ClubCard({ club, manage }) {
 }
 
 export default function MyClubs() {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
   const [params] = useSearchParams();
   const facultyPending = params.get("facultyPending") === "1";
 
   useEffect(() => {
+    if (user?.AccountType === "Faculty") return;
     api.get("/api/my-clubs/").then(setData).catch(e => setErr(e.message));
-  }, []);
+  }, [user?.AccountType]);
 
+  if (user?.AccountType === "Faculty") {
+    return <Navigate to="/admin-portal" replace />;
+  }
   if (err) return <main className="container"><div className="error">{err}</div></main>;
   if (!data) return <main className="container"><p>Loading…</p></main>;
 
@@ -85,7 +92,7 @@ export default function MyClubs() {
             {data.pending.map(p => (
               <li key={p.ClubID}>
                 <strong>{p.ClubName}</strong>
-                <span className="muted"> — requested {new Date(p.RequestTime).toLocaleString()}</span>
+                <span className="muted"> — requested {fmtDateTime(p.RequestTime)}</span>
               </li>
             ))}
           </ul>

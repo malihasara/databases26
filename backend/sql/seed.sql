@@ -1,5 +1,3 @@
-USE club_organizations;
-
 INSERT INTO Category VALUES
 ('CA001','Sports'),
 ('CA002','Arts'),
@@ -13,19 +11,19 @@ INSERT INTO Category VALUES
 ('CA010','STEM');
 
 INSERT INTO User VALUES
-('US001','Alice','Nguyen','alice@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-15','Active','Student'),
-('US002','Bob','Patel','bob@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-20','Active','Student'),
-('US003','Carol','Smith','carol@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-01','Active','Student'),
-('US004','David','Kim','david@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-05','Active','Student'),
-('US005','Emma','Lopez','emma@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-10','Active','Student'),
-('US006','Frank','Chen','frank@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-12','Active','Student'),
-('US007','Grace','Wong','grace@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-15','Active','Student'),
-('US008','Henry','Garcia','henry@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-20','Active','Student'),
-('US009','Ivy','Martinez','ivy@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-22','Active','Student'),
-('US010','Jack','Brown','jack@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-25','Active','Student'),
-('US011','Kara','Davis','kara@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-01','Active','Student'),
-('US012','Liam','Hall','liam@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-05','Active','Student'),
-('US013','Maliha','Admin','adminmaliha@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-01','Active','Faculty');
+('US001','Alice','Nguyen','alice@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-15','Active','Student','None',NULL),
+('US002','Bob','Patel','bob@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-20','Active','Student','None',NULL),
+('US003','Carol','Smith','carol@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-01','Active','Student','None',NULL),
+('US004','David','Kim','david@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-05','Active','Student','None',NULL),
+('US005','Emma','Lopez','emma@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-10','Active','Student','None',NULL),
+('US006','Frank','Chen','frank@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-12','Active','Student','None',NULL),
+('US007','Grace','Wong','grace@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-15','Active','Student','None',NULL),
+('US008','Henry','Garcia','henry@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-20','Active','Student','None',NULL),
+('US009','Ivy','Martinez','ivy@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-22','Active','Student','None',NULL),
+('US010','Jack','Brown','jack@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-25','Active','Student','None',NULL),
+('US011','Kara','Davis','kara@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-01','Active','Student','None',NULL),
+('US012','Liam','Hall','liam@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-05','Active','Student','None',NULL),
+('US013','Maliha','Admin','adminmaliha@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-01','Active','Faculty','None',NULL);
 
 INSERT INTO Club VALUES
 ('CL001','Society of Asian Scientists & Engineers','Equips members with the skill set to succeed in professional environments.','2020-01-15','CA006'),
@@ -40,20 +38,20 @@ INSERT INTO Club VALUES
 ('CL010','Undergraduate Student Council','Primary student representatives and liaisons.','2018-09-11','CA009');
 
 INSERT INTO ClubMembership VALUES
-('CL001','US001','Owner','Active','2024-08-20'),
+('CL001','US001','Officer','Active','2024-08-20'),
 ('CL001','US002','Officer','Active','2024-08-25'),
 ('CL001','US003','Member','Active','2024-09-02'),
-('CL002','US005','Owner','Active','2024-09-12'),
+('CL002','US005','Officer','Active','2024-09-12'),
 ('CL002','US007','Member','Active','2024-09-18'),
-('CL003','US004','Owner','Active','2024-09-08'),
-('CL004','US006','Owner','Active','2024-09-14'),
-('CL005','US008','Owner','Active','2024-09-22'),
+('CL003','US004','Officer','Active','2024-09-08'),
+('CL004','US006','Officer','Active','2024-09-14'),
+('CL005','US008','Officer','Active','2024-09-22'),
 ('CL005','US001','Member','Active','2024-09-25'),
-('CL006','US009','Owner','Active','2024-09-25'),
-('CL007','US010','Owner','Active','2024-09-28'),
+('CL006','US009','Officer','Active','2024-09-25'),
+('CL007','US010','Officer','Active','2024-09-28'),
 ('CL007','US002','Officer','Active','2024-10-01'),
-('CL008','US011','Owner','Active','2024-10-03'),
-('CL009','US012','Owner','Active','2024-10-07'),
+('CL008','US011','Officer','Active','2024-10-03'),
+('CL009','US012','Officer','Active','2024-10-07'),
 ('CL009','US003','Officer','Active','2024-10-08'),
 ('CL010','US001','Officer','Active','2024-10-10');
 
@@ -134,13 +132,13 @@ INSERT INTO Attendance VALUES
 ('EV001','RS003','2026-05-15 18:05:00','SelfCheckIn');
 
 INSERT INTO Announcement VALUES
-('AN001','Welcome!','Excited to welcome new members for the new semester.','2025-08-25','CL001','US001'),
-('AN002','Networking Night','Join us for a night of networking with industry professionals.','2025-09-10','CL001','US001'),
-('AN003','Volunteer Opportunity','Seeking volunteers for our community service event.','2025-09-20','CL009','US012'),
-('AN004','Study & Chill','Come hang out before finals.','2025-12-01','CL001','US002'),
-('AN005','Guest Speaker','Hosting a guest speaker from Google next week.','2025-10-15','CL009','US003'),
-('AN006','Hackathon Coming','Get ready for our hackathon. More details soon.','2025-11-01','CL007','US010'),
-('AN007','Mentor Day','Spend a day mentoring local high school students.','2025-10-05','CL009','US012'),
-('AN008','End of Semester Party','Food and drinks provided.','2025-12-15','CL001','US001'),
-('AN009','Resume Workshop','Resume workshop to help you prep for job search.','2025-09-30','CL002','US005'),
-('AN010','Arduino Workshop','Learn the basics of Arduino programming.','2025-10-20','CL008','US011');
+('AN001','Welcome!','Excited to welcome new members for the new semester.','2025-08-25','Public','CL001','US001'),
+('AN002','Networking Night','Join us for a night of networking with industry professionals.','2025-09-10','Public','CL001','US001'),
+('AN003','Volunteer Opportunity','Seeking volunteers for our community service event.','2025-09-20','Public','CL009','US012'),
+('AN004','Study & Chill','Come hang out before finals.','2025-12-01','MembersOnly','CL001','US002'),
+('AN005','Guest Speaker','Hosting a guest speaker from Google next week.','2025-10-15','Public','CL009','US003'),
+('AN006','Hackathon Coming','Get ready for our hackathon. More details soon.','2025-11-01','Public','CL007','US010'),
+('AN007','Mentor Day','Spend a day mentoring local high school students.','2025-10-05','Public','CL009','US012'),
+('AN008','End of Semester Party','Food and drinks provided.','2025-12-15','MembersOnly','CL001','US001'),
+('AN009','Resume Workshop','Resume workshop to help you prep for job search.','2025-09-30','Public','CL002','US005'),
+('AN010','Arduino Workshop','Learn the basics of Arduino programming.','2025-10-20','Public','CL008','US011');

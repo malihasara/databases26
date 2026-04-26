@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth.jsx";
+import { fmtDate, fmtDateTime, fmtTime } from "../format.js";
 
 export default function ClubDetail() {
   const { id } = useParams();
@@ -12,7 +13,7 @@ export default function ClubDetail() {
   const [msg, setMsg] = useState("");
 
   const isFaculty = user?.AccountType === "Faculty";
-  const isOfficer = data?.membership && ["Owner", "Officer"].includes(data.membership.MembershipRole);
+  const isOfficer = data?.membership?.MembershipRole === "Officer";
   const canManageRequests = isFaculty || isOfficer;
 
   const loadClub = () => api.get(`/api/clubs/${id}`).then(setData).catch(e => setErr(e.message));
@@ -54,7 +55,7 @@ export default function ClubDetail() {
     <main className="container">
       <header className="page-head">
         <h1>{club.ClubName}</h1>
-        <p className="muted">{club.CategoryName} · created {club.ClubCreationDate?.slice(0, 10)}</p>
+        <p className="muted">{club.CategoryName} · created {fmtDate(club.ClubCreationDate)}</p>
       </header>
 
       <div className="card">
@@ -62,7 +63,9 @@ export default function ClubDetail() {
 
         {msg && <div className="success">{msg}</div>}
         <div className="actions">
-          {membership && membership.MembershipStatus === "Active" ? (
+          {isFaculty ? (
+            <Link className="badge" to={`/admin/${club.ClubID}`}>Faculty admin →</Link>
+          ) : membership && membership.MembershipStatus === "Active" ? (
             <>
               <span className="badge">You are a {membership.MembershipRole}</span>
               {isOfficer && <Link className="badge" to={`/admin/${club.ClubID}`}>Open admin →</Link>}
@@ -72,9 +75,6 @@ export default function ClubDetail() {
             <span className="badge">Request pending</span>
           ) : (
             <button onClick={join}>Request to join</button>
-          )}
-          {isFaculty && !isOfficer && (
-            <Link className="badge" to={`/admin/${club.ClubID}`}>Faculty admin →</Link>
           )}
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function ClubDetail() {
                     <div>
                       <strong>{r.FirstName} {r.LastName}</strong>
                       <span className="muted"> · {r.Email}</span>
-                      <div className="muted small">requested {new Date(r.RequestTime).toLocaleString()}</div>
+                      <div className="muted small">requested {fmtDateTime(r.RequestTime)}</div>
                     </div>
                     <div className="actions">
                       <button onClick={() => decideRequest(r.RequestID, "approve")}>Approve</button>
@@ -118,8 +118,11 @@ export default function ClubDetail() {
               <article key={a.AnnouncementID} className="card announcement">
                 <header>
                   <h3>{a.AnnouncementTitle}</h3>
-                  <span className="muted small">{a.AnnouncementDate?.slice(0, 10)}</span>
+                  <span className="muted small">{fmtDate(a.AnnouncementDate)}</span>
                 </header>
+                {a.AnnouncementVisibility === "MembersOnly" && (
+                  <span className="role-pill">Members only</span>
+                )}
                 <p>{a.AnnouncementBody}</p>
               </article>
             ))}
@@ -137,10 +140,10 @@ export default function ClubDetail() {
               <Link key={e.EventID} className="club-card" to={`/events/${e.EventID}`}>
                 <div className="club-card-head">
                   <span className="role-pill">{e.EventVisibility}</span>
-                  <span className="muted small">{new Date(e.EventStartTime).toLocaleDateString()}</span>
+                  <span className="muted small">{fmtDate(e.EventStartTime)}</span>
                 </div>
                 <h3>{e.EventTitle}</h3>
-                <p className="muted small">{new Date(e.EventStartTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</p>
+                <p className="muted small">{fmtTime(e.EventStartTime)}</p>
               </Link>
             ))}
           </div>

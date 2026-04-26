@@ -19,7 +19,7 @@ GRANT SELECT ON club_organizations.Location  TO 'club_app'@'%';
 GRANT SELECT ON club_organizations.EventType TO 'club_app'@'%';
 
 GRANT EXECUTE ON PROCEDURE club_organizations.sp_create_rsvp            TO 'club_app'@'%';
-GRANT EXECUTE ON PROCEDURE club_organizations.sp_create_club_with_owner TO 'club_app'@'%';
+GRANT EXECUTE ON PROCEDURE club_organizations.sp_create_club_with_officer TO 'club_app'@'%';
 GRANT EXECUTE ON PROCEDURE club_organizations.sp_approve_join_request   TO 'club_app'@'%';
 GRANT EXECUTE ON FUNCTION  club_organizations.fn_event_seats_remaining  TO 'club_app'@'%';
 

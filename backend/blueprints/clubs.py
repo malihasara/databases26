@@ -59,18 +59,39 @@ def detail(club_id):
         (club_id, g.user["UserID"]),
         one=True,
     ))
-    announcements = query(
-        "SELECT AnnouncementID, AnnouncementTitle, AnnouncementBody, AnnouncementDate "
-        "FROM Announcement WHERE ClubID = %s "
-        "ORDER BY AnnouncementDate DESC LIMIT 10",
-        (club_id,),
-    )
-    upcoming = query(
-        "SELECT EventID, EventTitle, EventStartTime, EventVisibility "
-        "FROM Event WHERE ClubID = %s AND EventStatus = 'Scheduled' AND EventStartTime >= NOW() "
-        "ORDER BY EventStartTime",
-        (club_id,),
-    )
+    can_see_private = bool(membership and membership["MembershipStatus"] == "Active") \
+        or g.user.get("AccountType") == "Faculty"
+    if can_see_private:
+        announcements = query(
+            "SELECT AnnouncementID, AnnouncementTitle, AnnouncementBody, "
+            "AnnouncementDate, AnnouncementVisibility "
+            "FROM Announcement WHERE ClubID = %s "
+            "ORDER BY AnnouncementDate DESC LIMIT 10",
+            (club_id,),
+        )
+    else:
+        announcements = query(
+            "SELECT AnnouncementID, AnnouncementTitle, AnnouncementBody, "
+            "AnnouncementDate, AnnouncementVisibility "
+            "FROM Announcement WHERE ClubID = %s AND AnnouncementVisibility = 'Public' "
+            "ORDER BY AnnouncementDate DESC LIMIT 10",
+            (club_id,),
+        )
+    if can_see_private:
+        upcoming = query(
+            "SELECT EventID, EventTitle, EventStartTime, EventVisibility "
+            "FROM Event WHERE ClubID = %s AND EventStatus = 'Scheduled' AND EventStartTime >= NOW() "
+            "ORDER BY EventStartTime",
+            (club_id,),
+        )
+    else:
+        upcoming = query(
+            "SELECT EventID, EventTitle, EventStartTime, EventVisibility "
+            "FROM Event WHERE ClubID = %s AND EventStatus = 'Scheduled' "
+            "AND EventVisibility = 'Public' AND EventStartTime >= NOW() "
+            "ORDER BY EventStartTime",
+            (club_id,),
+        )
     return jsonify(
         club=club,
         membership=membership,

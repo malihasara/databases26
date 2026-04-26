@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import AdminNav from "./AdminNav.jsx";
+import { fmtDateTime } from "../format.js";
 
 export default function AdminEvents() {
   const { clubId } = useParams();
@@ -31,7 +32,7 @@ export default function AdminEvents() {
             {events.map(e => (
               <tr key={e.EventID}>
                 <td>{e.EventTitle}</td>
-                <td>{new Date(e.EventStartTime).toLocaleString()}</td>
+                <td>{fmtDateTime(e.EventStartTime)}</td>
                 <td>{e.EventStatus}</td>
                 <td>{e.EventVisibility}</td>
                 <td>{e.going} / {e.EventCapacity}</td>

@@ -51,7 +51,9 @@ function Nav() {
             <NavLink to="/events">Events</NavLink>
             <span className="who">
               {user.FirstName}
-              {isFaculty && <span className="faculty-pill">Faculty</span>}
+              <span className={isFaculty ? "faculty-pill" : "student-pill"}>
+                {isFaculty ? "Faculty" : "Student"}
+              </span>
             </span>
             <button className="link" onClick={logout}>Log out</button>
             <ThemeToggle />

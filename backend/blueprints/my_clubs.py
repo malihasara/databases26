@@ -22,7 +22,7 @@ def list_my_clubs():
         """,
         (g.user["UserID"],),
     )
-    managing = [r for r in rows if r["MembershipRole"] in ("Owner", "Officer")]
+    managing = [r for r in rows if r["MembershipRole"] == "Officer"]
     member   = [r for r in rows if r["MembershipRole"] == "Member"]
 
     pending = query(

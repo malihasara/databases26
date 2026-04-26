@@ -13,6 +13,7 @@ def get_connection():
         database=cfg["DB_NAME"],
         autocommit=False,
         connection_timeout=10,
+        ssl_disabled=False,
     )
 
 

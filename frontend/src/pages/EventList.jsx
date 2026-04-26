@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api";
+import { fmtDateTime } from "../format.js";
 
 export default function EventList() {
   const [params, setParams] = useSearchParams();
@@ -57,7 +58,7 @@ export default function EventList() {
             {data.events.map(e => (
               <li key={e.EventID}>
                 <Link to={`/events/${e.EventID}`}><strong>{e.EventTitle}</strong></Link>
-                <span className="muted"> — {e.ClubName} · {new Date(e.EventStartTime).toLocaleString()} · {e.BuildingName} {e.RoomNumber} · {e.EventVisibility}</span>
+                <span className="muted"> — {e.ClubName} · {fmtDateTime(e.EventStartTime)} · {e.BuildingName} {e.RoomNumber} · {e.EventVisibility}</span>
                 <p>{e.EventDescription}</p>
               </li>
             ))}

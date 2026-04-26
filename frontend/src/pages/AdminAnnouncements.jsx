@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
 import AdminNav from "./AdminNav.jsx";
+import { fmtDate } from "../format.js";
 
 export default function AdminAnnouncements() {
   const { clubId } = useParams();
   const [items, setItems] = useState(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [visibility, setVisibility] = useState("Public");
   const [err, setErr] = useState("");
 
   const load = () => api.get(`/api/admin/${clubId}/announcements/`).then(d => setItems(d.announcements)).catch(e => setErr(e.message));
@@ -17,8 +19,8 @@ export default function AdminAnnouncements() {
     e.preventDefault();
     setErr("");
     try {
-      await api.post(`/api/admin/${clubId}/announcements/`, { title, body });
-      setTitle(""); setBody("");
+      await api.post(`/api/admin/${clubId}/announcements/`, { title, body, visibility });
+      setTitle(""); setBody(""); setVisibility("Public");
       load();
     } catch (e) { setErr(e.message); }
   };
@@ -37,6 +39,12 @@ export default function AdminAnnouncements() {
       <form className="card" onSubmit={post}>
         <label>Title<input value={title} onChange={e => setTitle(e.target.value)} required /></label>
         <label>Body<textarea rows={3} value={body} onChange={e => setBody(e.target.value)} required /></label>
+        <label>Visibility
+          <select value={visibility} onChange={e => setVisibility(e.target.value)}>
+            <option value="Public">Public — anyone can read</option>
+            <option value="MembersOnly">Members only — only active members</option>
+          </select>
+        </label>
         <button type="submit">Post</button>
       </form>
       {!items ? <p>Loading…</p> : (
@@ -45,7 +53,8 @@ export default function AdminAnnouncements() {
           {items.map(a => (
             <li key={a.AnnouncementID}>
               <strong>{a.AnnouncementTitle}</strong>
-              <span className="muted"> — {a.FirstName} {a.LastName} on {a.AnnouncementDate?.slice(0, 10)}</span>
+              <span className="role-pill" style={{ marginLeft: "0.5rem" }}>{a.AnnouncementVisibility}</span>
+              <span className="muted"> — {a.FirstName} {a.LastName} on {fmtDate(a.AnnouncementDate)}</span>
               <p>{a.AnnouncementBody}</p>
               <button className="danger" onClick={() => remove(a.AnnouncementID)}>Delete</button>
             </li>

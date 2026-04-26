@@ -1,7 +1,3 @@
-DROP DATABASE IF EXISTS club_organizations;
-CREATE DATABASE club_organizations;
-USE club_organizations;
-
 CREATE TABLE User (
     UserID              CHAR(5)         PRIMARY KEY,
     FirstName           VARCHAR(40)     NOT NULL,
@@ -41,7 +37,7 @@ CREATE TABLE ClubMembership (
     PRIMARY KEY (ClubID, UserID),
     FOREIGN KEY (ClubID) REFERENCES Club(ClubID),
     FOREIGN KEY (UserID) REFERENCES User(UserID),
-    CONSTRAINT chk_membership_role   CHECK (MembershipRole   IN ('Owner','Officer','Member')),
+    CONSTRAINT chk_membership_role   CHECK (MembershipRole   IN ('Officer','Member')),
     CONSTRAINT chk_membership_status CHECK (MembershipStatus IN ('Active','Inactive'))
 );
 
@@ -58,14 +54,16 @@ CREATE TABLE JoinRequest (
 );
 
 CREATE TABLE Announcement (
-    AnnouncementID    CHAR(5)      PRIMARY KEY,
-    AnnouncementTitle VARCHAR(100) NOT NULL,
-    AnnouncementBody  TEXT         NOT NULL,
-    AnnouncementDate  DATE         NOT NULL,
-    ClubID            CHAR(5)      NOT NULL,
-    UserID            CHAR(5)      NOT NULL,
+    AnnouncementID         CHAR(5)      PRIMARY KEY,
+    AnnouncementTitle      VARCHAR(100) NOT NULL,
+    AnnouncementBody       TEXT         NOT NULL,
+    AnnouncementDate       DATE         NOT NULL,
+    AnnouncementVisibility VARCHAR(15)  NOT NULL DEFAULT 'Public',
+    ClubID                 CHAR(5)      NOT NULL,
+    UserID                 CHAR(5)      NOT NULL,
     FOREIGN KEY (ClubID) REFERENCES Club(ClubID),
-    FOREIGN KEY (UserID) REFERENCES User(UserID)
+    FOREIGN KEY (UserID) REFERENCES User(UserID),
+    CONSTRAINT chk_announce_vis CHECK (AnnouncementVisibility IN ('Public','MembersOnly'))
 );
 
 CREATE TABLE Location (
