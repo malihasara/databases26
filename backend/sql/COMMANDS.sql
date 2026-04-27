@@ -1,25 +1,5 @@
--- ============================================================================
---  VioletConnect (Campus Club Management & Event Platform)
---  Single-file SQL bundle for Milestone 3 / Milestone 4 submission.
---
---  Sections:
---   1. Schema (CREATE DATABASE / CREATE TABLE + CHECK constraints)
---   2. Advanced PL/SQL (triggers, function, stored procedures)
---   3. Seed data (>=10 rows per table, realistic)
---   4. Database-level security (developer + application accounts; GRANTs)
---   5. Application-level SQL (every SELECT / INSERT / UPDATE / DELETE the
---      Flask backend issues, grouped by feature, with parameterized values
---      shown as %s).
---
---  Run order (fresh DB):
---    sections 1 -> 2 -> 3 -> 4
---  Section 5 is reference; the app issues these at runtime.
--- ============================================================================
 
-
--- ============================================================================
 -- 1. SCHEMA
--- ============================================================================
 
 DROP DATABASE IF EXISTS club_organizations;
 CREATE DATABASE club_organizations;
@@ -152,9 +132,8 @@ CREATE TABLE Attendance (
 );
 
 
--- ============================================================================
 -- 2. ADVANCED PL/SQL  (3 triggers, 1 function, 3 stored procedures)
--- ============================================================================
+
 
 DROP TRIGGER IF EXISTS trg_rsvp_capacity_insert;
 DELIMITER //
@@ -367,9 +346,8 @@ END //
 DELIMITER ;
 
 
--- ============================================================================
+
 -- 3. SEED DATA  (>=10 rows per table; bcrypt password hash is for "password123")
--- ============================================================================
 
 INSERT INTO Category VALUES
 ('CA001','Sports'),
@@ -517,13 +495,12 @@ INSERT INTO Announcement VALUES
 ('AN010','Arduino Workshop','Learn the basics of Arduino programming.','2025-10-20','Public','CL008','US011');
 
 
--- ============================================================================
 -- 4. DATABASE-LEVEL SECURITY
 --    Two MySQL accounts:
 --      club_dev -> developers; full DDL/DML on club_organizations
 --      club_app -> Flask app;  DML on user-touched tables, EXECUTE on routines,
 --                              read-only on lookup tables, NO DDL.
--- ============================================================================
+
 
 DROP USER IF EXISTS 'club_dev'@'%';
 CREATE USER 'club_dev'@'%' IDENTIFIED BY 'CHANGE_ME_DEV_PASSWORD';
@@ -552,20 +529,13 @@ GRANT EXECUTE ON FUNCTION  club_organizations.fn_event_seats_remaining    TO 'cl
 
 FLUSH PRIVILEGES;
 
-
--- ============================================================================
 -- 5. APPLICATION SQL  (everything the Flask backend issues at runtime).
 --    Parameter values appear as %s; the app uses parameterized queries so
 --    user input is never interpolated into the SQL string. Grouped by feature.
---
---    These statements are NOT executed when this file is run; they are listed
---    for the Milestone 3/4 "all SQL commands used by the app" requirement.
--- ============================================================================
 
 
--- ----------------------------------------------------------------------------
 -- 5.1 Authentication & accounts  (auth.py)
--- ----------------------------------------------------------------------------
+
 
 -- Load the logged-in user from the session cookie.
 SELECT UserID, FirstName, LastName, Email, AccountType
@@ -597,9 +567,9 @@ SELECT MembershipRole FROM ClubMembership
 WHERE ClubID = %s AND UserID = %s AND MembershipStatus = 'Active';
 
 
--- ----------------------------------------------------------------------------
+
 -- 5.2 My Clubs  (my_clubs.py)
--- ----------------------------------------------------------------------------
+
 
 -- All active memberships for the logged-in user (split into managing/member
 -- in the application layer based on MembershipRole).
@@ -619,9 +589,8 @@ WHERE jr.UserID = %s AND jr.RequestStatus = 'Pending'
 ORDER BY jr.RequestTime DESC;
 
 
--- ----------------------------------------------------------------------------
 -- 5.3 Club directory + detail  (clubs.py)
--- ----------------------------------------------------------------------------
+
 
 -- Directory list with optional name filter, category filter, and sort
 -- (sort is interpolated from a fixed allow-list, not user input).
@@ -692,9 +661,7 @@ VALUES (%s, 'Pending', %s, %s);
 DELETE FROM ClubMembership WHERE ClubID = %s AND UserID = %s;
 
 
--- ----------------------------------------------------------------------------
 -- 5.4 Events list, detail, RSVP, and check-in  (events.py)
--- ----------------------------------------------------------------------------
 
 -- Events list for a faculty user (no visibility filter).
 SELECT e.EventID, e.EventTitle, e.EventDescription, e.EventStartTime,
@@ -768,9 +735,7 @@ INSERT INTO Attendance (EventID, RSVPID, CheckInMethod)
 VALUES (%s, %s, 'SelfCheckIn');
 
 
--- ----------------------------------------------------------------------------
 -- 5.5 Officer / club-management portal  (admin.py)
--- ----------------------------------------------------------------------------
 
 -- Club identity (for the dashboard header).
 SELECT ClubID, ClubName FROM Club WHERE ClubID = %s;
@@ -878,9 +843,8 @@ UPDATE RSVP SET RSVPStatus = 'Going'
 WHERE RSVPID = %s;
 
 
--- ----------------------------------------------------------------------------
 -- 5.6 Announcements  (announcements.py)
--- ----------------------------------------------------------------------------
+
 
 -- Officer-side list (includes visibility for the role pill).
 SELECT a.AnnouncementID, a.AnnouncementTitle, a.AnnouncementBody, a.AnnouncementDate,
@@ -898,9 +862,8 @@ VALUES (%s, %s, %s, %s, %s, %s, %s);
 DELETE FROM Announcement WHERE AnnouncementID = %s AND ClubID = %s;
 
 
--- ----------------------------------------------------------------------------
+
 -- 5.7 Faculty admin portal  (admin_portal.py)
--- ----------------------------------------------------------------------------
 
 -- Platform-wide overview counts.
 SELECT
@@ -964,7 +927,7 @@ WHERE AccountStatus = 'Active' ORDER BY LastName, FirstName;
 -- Create a club (atomically inserts the club and its initial Officer membership).
 CALL sp_create_club_with_officer(%s, %s, %s, %s, %s);
 
--- Faculty deletion of a club: nuke dependent rows in topological order so
+-- Faculty deletion of a club
 -- foreign keys and the trg_protect_last_officer_delete trigger are satisfied.
 DELETE a FROM Attendance a
 JOIN Event e ON e.EventID = a.EventID
@@ -986,9 +949,9 @@ DELETE FROM ClubMembership WHERE ClubID = %s;
 DELETE FROM Club WHERE ClubID = %s;
 
 
--- ----------------------------------------------------------------------------
+
 -- 5.8 CSV exports  (export.py)
--- ----------------------------------------------------------------------------
+
 
 -- Members CSV (officer or faculty).
 SELECT u.UserID, u.FirstName, u.LastName, u.Email,
@@ -1007,9 +970,7 @@ WHERE r.EventID = %s
 ORDER BY u.LastName;
 
 
--- ----------------------------------------------------------------------------
 -- 5.9 Public (unauthenticated) browse  (public.py)
--- ----------------------------------------------------------------------------
 
 -- Public club directory.
 SELECT c.ClubID, c.ClubName, c.ClubDescription, cat.CategoryName
@@ -1027,10 +988,8 @@ WHERE e.EventVisibility = 'Public' AND e.EventStatus = 'Scheduled'
   AND e.EventTitle LIKE %s   -- only when q
 ORDER BY e.EventStartTime;
 
-
--- ----------------------------------------------------------------------------
 -- 5.10 ID generation helper  (db.py: next_id)
--- ----------------------------------------------------------------------------
+
 
 -- Read the largest existing ID with a given prefix; the application increments
 -- the numeric portion and zero-pads back to width 3 (e.g., RS012 -> RS013).
