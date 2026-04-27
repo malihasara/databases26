@@ -1,3 +1,4 @@
+// Officer form for creating or editing a club event (location, type, capacity, visibility).
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";

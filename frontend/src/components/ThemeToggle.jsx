@@ -1,3 +1,4 @@
+// Light / dark theme toggle button persisted in localStorage.
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "vc-theme";

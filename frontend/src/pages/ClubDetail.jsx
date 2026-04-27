@@ -1,3 +1,4 @@
+// Single-club page: description, join/leave, announcements, upcoming events, officer-side join requests.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
@@ -12,9 +13,9 @@ export default function ClubDetail() {
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
 
-  const isFaculty = user?.AccountType === "Faculty";
-  const isOfficer = data?.membership?.MembershipRole === "Officer";
-  const canManageRequests = isFaculty || isOfficer;
+  const isAdmin = user?.AccountType === "Admin";
+  const isOfficer = ["President", "VicePresident", "Officer"].includes(data?.membership?.MembershipRole);
+  const canManageRequests = isAdmin || isOfficer;
 
   const loadClub = () => api.get(`/api/clubs/${id}`).then(setData).catch(e => setErr(e.message));
   const loadRequests = () => api.get(`/api/admin/${id}/requests`).then(d => setRequests(d.requests)).catch(() => setRequests([]));
@@ -55,7 +56,9 @@ export default function ClubDetail() {
     <main className="container">
       <header className="page-head">
         <h1>{club.ClubName}</h1>
-        <p className="muted">{club.CategoryName} · created {fmtDate(club.ClubCreationDate)}</p>
+        <p className="muted">
+          {(club.Categories || []).map(c => c.CategoryName).join(" · ") || "—"} · created {fmtDate(club.ClubCreationDate)}
+        </p>
       </header>
 
       <div className="card">
@@ -63,8 +66,8 @@ export default function ClubDetail() {
 
         {msg && <div className="success">{msg}</div>}
         <div className="actions">
-          {isFaculty ? (
-            <Link className="badge" to={`/admin/${club.ClubID}`}>Faculty admin →</Link>
+          {isAdmin ? (
+            <Link className="badge" to={`/admin/${club.ClubID}`}>Admin tools →</Link>
           ) : membership && membership.MembershipStatus === "Active" ? (
             <>
               <span className="badge">You are a {membership.MembershipRole}</span>

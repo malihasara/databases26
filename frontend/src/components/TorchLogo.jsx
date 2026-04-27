@@ -1,3 +1,4 @@
+// VioletConnect torch mark: white plate with violet flame, used in nav and as favicon.
 export default function TorchLogo({ size = 32, className = "" }) {
   return (
     <svg

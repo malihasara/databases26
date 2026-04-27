@@ -1,3 +1,4 @@
+// Student "My Clubs" home: clubs you lead vs. belong to, plus pending join + creation requests.
 import { useEffect, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
@@ -31,14 +32,14 @@ export default function MyClubs() {
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
   const [params] = useSearchParams();
-  const facultyPending = params.get("facultyPending") === "1";
+  const adminPending = params.get("adminPending") === "1";
 
   useEffect(() => {
-    if (user?.AccountType === "Faculty") return;
+    if (user?.AccountType === "Admin") return;
     api.get("/api/my-clubs/").then(setData).catch(e => setErr(e.message));
   }, [user?.AccountType]);
 
-  if (user?.AccountType === "Faculty") {
+  if (user?.AccountType === "Admin") {
     return <Navigate to="/admin-portal" replace />;
   }
   if (err) return <main className="container"><div className="error">{err}</div></main>;
@@ -53,10 +54,10 @@ export default function MyClubs() {
         <p className="muted">Clubs you lead and clubs you belong to.</p>
       </header>
 
-      {facultyPending && (
+      {adminPending && (
         <div className="info-banner">
-          <strong>Faculty access requested.</strong> Your account is currently a student account.
-          An existing faculty member will review your request and promote you once approved.
+          <strong>Admin access requested.</strong> Your account is currently a student account.
+          An existing admin will review your request and promote you once approved.
         </div>
       )}
 

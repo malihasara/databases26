@@ -1,3 +1,4 @@
+// Filterable list of upcoming events visible to the signed-in user.
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api";

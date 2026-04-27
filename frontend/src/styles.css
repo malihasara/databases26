@@ -142,13 +142,13 @@ h3 { font-size: 1.05rem; font-weight: 600; letter-spacing: 0; }
   border-left: 1px solid var(--line); padding-left: 0.85rem;
   display: inline-flex; align-items: center; gap: 0.45rem;
 }
-.faculty-pill, .student-pill {
+.admin-pill, .student-pill {
   font-family: "DM Sans", sans-serif;
   font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
   padding: 0.12rem 0.45rem; border-radius: var(--r-pill);
   font-weight: 700;
 }
-.faculty-pill { background: var(--violet-800); color: var(--gold-300); }
+.admin-pill { background: var(--violet-800); color: var(--gold-300); }
 .student-pill { background: var(--violet-100); color: var(--violet-900); border: 1px solid var(--violet-200); }
 [data-theme="dark"] .student-pill {
   background: rgba(157, 78, 221, 0.22);

@@ -1,3 +1,10 @@
+"""
+db.py
+
+MySQL connection helper bound to the Flask request lifecycle, plus tiny
+query/execute/call_proc/next_id helpers used throughout the blueprints.
+"""
+
 from contextlib import contextmanager
 import mysql.connector
 from flask import current_app, g

@@ -1,3 +1,4 @@
+// Tiny fetch wrapper that always sends cookies and unwraps JSON / errors.
 async function request(method, path, body) {
   const res = await fetch(path, {
     method,

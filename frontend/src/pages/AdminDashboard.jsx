@@ -1,3 +1,4 @@
+// Officer dashboard: counts of members, pending requests, scheduled events, posts, member actions.
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";

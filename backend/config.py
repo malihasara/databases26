@@ -1,3 +1,10 @@
+"""
+config.py
+
+Loads environment variables from .env into a Config class read by the Flask
+app factory.
+"""
+
 import os
 from dotenv import load_dotenv
 

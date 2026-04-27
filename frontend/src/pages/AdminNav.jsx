@@ -1,3 +1,4 @@
+// Subnav for the per-club officer admin pages (dashboard, members, requests, events, announcements).
 import { NavLink, useParams } from "react-router-dom";
 
 export default function AdminNav({ active }) {

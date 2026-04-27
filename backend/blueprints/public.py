@@ -1,3 +1,9 @@
+"""
+public.py
+
+Unauthenticated browse endpoints: public club directory and public event list.
+"""
+
 from flask import Blueprint, jsonify, request
 
 from db import query
@@ -10,13 +16,17 @@ bp = Blueprint("public", __name__)
 def clubs():
     q = request.args.get("q", "").strip()
     sql = [
-        "SELECT c.ClubID, c.ClubName, c.ClubDescription, cat.CategoryName",
-        "FROM Club c JOIN Category cat ON cat.CategoryID = c.CategoryID",
+        "SELECT c.ClubID, c.ClubName, c.ClubDescription,",
+        "       GROUP_CONCAT(DISTINCT cat.CategoryName ORDER BY cat.CategoryName SEPARATOR ', ') AS Categories",
+        "FROM Club c",
+        "LEFT JOIN ClubCategory cc ON cc.ClubID = c.ClubID",
+        "LEFT JOIN Category cat   ON cat.CategoryID = cc.CategoryID",
     ]
     params = []
     if q:
         sql.append("WHERE c.ClubName LIKE %s")
         params.append(f"%{q}%")
+    sql.append("GROUP BY c.ClubID, c.ClubName, c.ClubDescription")
     sql.append("ORDER BY c.ClubName")
     return jsonify(clubs=query(" ".join(sql), tuple(params)))
 

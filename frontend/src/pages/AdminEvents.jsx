@@ -1,3 +1,4 @@
+// Officer table of all club events with Edit / Attendance / Delete actions.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";

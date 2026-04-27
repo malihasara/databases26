@@ -7,11 +7,11 @@ CREATE TABLE User (
     AccountCreationDate DATE            NOT NULL,
     AccountStatus       VARCHAR(10)     NOT NULL DEFAULT 'Active',
     AccountType         VARCHAR(10)     NOT NULL DEFAULT 'Student',
-    FacultyRequestStatus VARCHAR(10)    NOT NULL DEFAULT 'None',
-    FacultyRequestTime  TIMESTAMP       NULL,
-    CONSTRAINT chk_user_status   CHECK (AccountStatus       IN ('Active','Inactive')),
-    CONSTRAINT chk_user_type     CHECK (AccountType         IN ('Student','Faculty')),
-    CONSTRAINT chk_faculty_req   CHECK (FacultyRequestStatus IN ('None','Pending','Approved','Rejected'))
+    AdminRequestStatus  VARCHAR(10)     NOT NULL DEFAULT 'None',
+    AdminRequestTime    TIMESTAMP       NULL,
+    CONSTRAINT chk_user_status CHECK (AccountStatus      IN ('Active','Inactive')),
+    CONSTRAINT chk_user_type   CHECK (AccountType        IN ('Student','Admin')),
+    CONSTRAINT chk_admin_req   CHECK (AdminRequestStatus IN ('None','Pending','Approved','Rejected'))
 );
 
 CREATE TABLE Category (
@@ -23,8 +23,14 @@ CREATE TABLE Club (
     ClubID           CHAR(5)      PRIMARY KEY,
     ClubName         VARCHAR(80)  NOT NULL UNIQUE,
     ClubDescription  TEXT         NOT NULL,
-    ClubCreationDate DATE         NOT NULL,
-    CategoryID       CHAR(5)      NOT NULL,
+    ClubCreationDate DATE         NOT NULL
+);
+
+CREATE TABLE ClubCategory (
+    ClubID     CHAR(5) NOT NULL,
+    CategoryID CHAR(5) NOT NULL,
+    PRIMARY KEY (ClubID, CategoryID),
+    FOREIGN KEY (ClubID)     REFERENCES Club(ClubID),
     FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID)
 );
 
@@ -37,7 +43,7 @@ CREATE TABLE ClubMembership (
     PRIMARY KEY (ClubID, UserID),
     FOREIGN KEY (ClubID) REFERENCES Club(ClubID),
     FOREIGN KEY (UserID) REFERENCES User(UserID),
-    CONSTRAINT chk_membership_role   CHECK (MembershipRole   IN ('Officer','Member')),
+    CONSTRAINT chk_membership_role   CHECK (MembershipRole   IN ('President','VicePresident','Officer','Member')),
     CONSTRAINT chk_membership_status CHECK (MembershipStatus IN ('Active','Inactive'))
 );
 
@@ -110,7 +116,7 @@ CREATE TABLE RSVP (
     UNIQUE (EventID, UserID),
     FOREIGN KEY (EventID) REFERENCES Event(EventID),
     FOREIGN KEY (UserID)  REFERENCES User(UserID),
-    CONSTRAINT chk_rsvp_status CHECK (RSVPStatus IN ('Going','NotGoing','Tentative'))
+    CONSTRAINT chk_rsvp_status CHECK (RSVPStatus IN ('Going','NotGoing','Tentative','NoShow'))
 );
 
 CREATE TABLE Attendance (
@@ -124,6 +130,46 @@ CREATE TABLE Attendance (
     CONSTRAINT chk_checkin_method CHECK (CheckInMethod IN ('Manual','QRCode','SelfCheckIn'))
 );
 
+CREATE TABLE ClubCreationRequest (
+    RequestID             CHAR(5)      PRIMARY KEY,
+    ProposedName          VARCHAR(80)  NOT NULL,
+    ProposedDescription   TEXT         NOT NULL,
+    ProposedOfficerUserID CHAR(5)      NOT NULL,
+    RequestedByUserID     CHAR(5)      NOT NULL,
+    RequestStatus         VARCHAR(10)  NOT NULL DEFAULT 'Pending',
+    RequestTime           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ResolvedTime          TIMESTAMP    NULL,
+    FOREIGN KEY (ProposedOfficerUserID) REFERENCES User(UserID),
+    FOREIGN KEY (RequestedByUserID)     REFERENCES User(UserID),
+    CONSTRAINT chk_ccr_status CHECK (RequestStatus IN ('Pending','Approved','Rejected'))
+);
+
+CREATE TABLE ClubCreationRequestCategory (
+    RequestID  CHAR(5) NOT NULL,
+    CategoryID CHAR(5) NOT NULL,
+    PRIMARY KEY (RequestID, CategoryID),
+    FOREIGN KEY (RequestID)  REFERENCES ClubCreationRequest(RequestID) ON DELETE CASCADE,
+    FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID)
+);
+
+CREATE TABLE MemberActionRequest (
+    RequestID         CHAR(5)     PRIMARY KEY,
+    ClubID            CHAR(5)     NOT NULL,
+    TargetUserID      CHAR(5)     NOT NULL,
+    ActionType        VARCHAR(20) NOT NULL,
+    TargetRole        VARCHAR(15) NULL,
+    RequestedByUserID CHAR(5)     NOT NULL,
+    RequestStatus     VARCHAR(10) NOT NULL DEFAULT 'Pending',
+    PresApproved      TINYINT(1)  NOT NULL DEFAULT 0,
+    VPApproved        TINYINT(1)  NOT NULL DEFAULT 0,
+    RequestTime       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ResolvedTime      TIMESTAMP   NULL,
+    FOREIGN KEY (ClubID)            REFERENCES Club(ClubID),
+    FOREIGN KEY (TargetUserID)      REFERENCES User(UserID),
+    FOREIGN KEY (RequestedByUserID) REFERENCES User(UserID),
+    CONSTRAINT chk_mar_status CHECK (RequestStatus IN ('Pending','Approved','Rejected','Cancelled')),
+    CONSTRAINT chk_mar_action CHECK (ActionType    IN ('Demote','Remove','PromoteOfficer','PromoteVP','PromotePresident'))
+);
 DROP TRIGGER IF EXISTS trg_rsvp_capacity_insert;
 DELIMITER //
 CREATE TRIGGER trg_rsvp_capacity_insert
@@ -246,7 +292,6 @@ CREATE PROCEDURE sp_create_club_with_officer(
     IN p_club_id CHAR(5),
     IN p_name VARCHAR(80),
     IN p_desc TEXT,
-    IN p_category_id CHAR(5),
     IN p_officer_user_id CHAR(5)
 )
 BEGIN
@@ -257,13 +302,13 @@ BEGIN
     END;
 
     START TRANSACTION;
-        INSERT INTO Club (ClubID, ClubName, ClubDescription, ClubCreationDate, CategoryID)
-        VALUES (p_club_id, p_name, p_desc, CURDATE(), p_category_id);
+        INSERT INTO Club (ClubID, ClubName, ClubDescription, ClubCreationDate)
+        VALUES (p_club_id, p_name, p_desc, CURDATE());
 
         INSERT INTO ClubMembership
             (ClubID, UserID, MembershipRole, MembershipStatus, MembershipJoinDate)
         VALUES
-            (p_club_id, p_officer_user_id, 'Officer', 'Active', CURDATE());
+            (p_club_id, p_officer_user_id, 'President', 'Active', CURDATE());
     COMMIT;
 END //
 DELIMITER ;
@@ -307,35 +352,92 @@ DELIMITER ;
 
 DROP TRIGGER IF EXISTS trg_protect_last_owner_delete;
 DROP TRIGGER IF EXISTS trg_protect_last_officer_delete;
+DROP TRIGGER IF EXISTS trg_protect_last_president_delete;
 DELIMITER //
-CREATE TRIGGER trg_protect_last_officer_delete
+CREATE TRIGGER trg_protect_last_president_delete
 BEFORE DELETE ON ClubMembership
 FOR EACH ROW
 BEGIN
-    DECLARE remaining_officers INT;
+    DECLARE remaining_leaders INT;
     DECLARE other_members INT;
 
-    IF OLD.MembershipRole = 'Officer' THEN
+    IF OLD.MembershipRole = 'President' THEN
         SELECT COUNT(*) INTO other_members
         FROM ClubMembership
         WHERE ClubID = OLD.ClubID AND NOT (UserID = OLD.UserID);
 
         IF other_members > 0 THEN
-            SELECT COUNT(*) INTO remaining_officers
+            SELECT COUNT(*) INTO remaining_leaders
             FROM ClubMembership
             WHERE ClubID = OLD.ClubID
-              AND MembershipRole = 'Officer'
+              AND MembershipRole IN ('President','VicePresident','Officer')
               AND NOT (UserID = OLD.UserID);
 
-            IF remaining_officers = 0 THEN
+            IF remaining_leaders = 0 THEN
                 SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Cannot remove the last Officer while members remain.';
+                SET MESSAGE_TEXT = 'Cannot remove the last leader while members remain.';
             END IF;
         END IF;
     END IF;
 END //
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_apply_member_action;
+DELIMITER //
+CREATE PROCEDURE sp_apply_member_action(IN p_request_id CHAR(5))
+BEGIN
+    DECLARE v_status   VARCHAR(10);
+    DECLARE v_pres     TINYINT(1);
+    DECLARE v_vp       TINYINT(1);
+    DECLARE v_action   VARCHAR(20);
+    DECLARE v_role     VARCHAR(15);
+    DECLARE v_club     CHAR(5);
+    DECLARE v_target   CHAR(5);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SELECT RequestStatus, PresApproved, VPApproved, ActionType, TargetRole, ClubID, TargetUserID
+      INTO v_status, v_pres, v_vp, v_action, v_role, v_club, v_target
+    FROM MemberActionRequest WHERE RequestID = p_request_id;
+
+    IF v_status <> 'Pending' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Request is not pending.';
+    END IF;
+    IF v_pres = 0 OR v_vp = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Both President and Vice President must approve.';
+    END IF;
+
+    START TRANSACTION;
+        IF v_action = 'Remove' THEN
+            DELETE FROM ClubMembership WHERE ClubID = v_club AND UserID = v_target;
+        ELSEIF v_action = 'Demote' THEN
+            UPDATE ClubMembership SET MembershipRole = 'Member'
+            WHERE ClubID = v_club AND UserID = v_target;
+        ELSEIF v_action = 'PromoteOfficer' THEN
+            UPDATE ClubMembership SET MembershipRole = 'Officer'
+            WHERE ClubID = v_club AND UserID = v_target;
+        ELSEIF v_action = 'PromoteVP' THEN
+            UPDATE ClubMembership SET MembershipRole = 'VicePresident'
+            WHERE ClubID = v_club AND UserID = v_target;
+        ELSEIF v_action = 'PromotePresident' THEN
+            UPDATE ClubMembership
+              SET MembershipRole = CASE WHEN MembershipRole = 'President' THEN 'Officer'
+                                        ELSE MembershipRole END
+            WHERE ClubID = v_club;
+            UPDATE ClubMembership SET MembershipRole = 'President'
+            WHERE ClubID = v_club AND UserID = v_target;
+        END IF;
+
+        UPDATE MemberActionRequest
+        SET RequestStatus = 'Approved', ResolvedTime = NOW()
+        WHERE RequestID = p_request_id;
+    COMMIT;
+END //
+DELIMITER ;
 INSERT INTO Category VALUES
 ('CA001','Sports'),
 ('CA002','Arts'),
@@ -361,37 +463,49 @@ INSERT INTO User VALUES
 ('US010','Jack','Brown','jack@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-25','Active','Student','None',NULL),
 ('US011','Kara','Davis','kara@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-01','Active','Student','None',NULL),
 ('US012','Liam','Hall','liam@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-05','Active','Student','None',NULL),
-('US013','Maliha','Admin','adminmaliha@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-01','Active','Faculty','None',NULL);
+('US013','Maliha','Admin','adminmaliha@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-01','Active','Admin','None',NULL);
 
 INSERT INTO Club VALUES
-('CL001','Society of Asian Scientists & Engineers','Equips members with the skill set to succeed in professional environments.','2020-01-15','CA006'),
-('CL002','Alpha Omega Epsilon','Professional and social sorority for women in engineering.','2019-09-10','CA009'),
-('CL003','Business & Finance Group','Empowers Tandon students with comprehensive financial education.','2021-02-20','CA006'),
-('CL004','Chemists Club','Bridges academia and industry in chemistry and chemical engineering.','2020-10-05','CA010'),
-('CL005','oSTEM at NYU','Fosters a safe, supportive environment for all students in STEM.','2019-09-10','CA010'),
-('CL006','Poly Anime Society','Promotes appreciation of Japanese culture and entertainment.','2021-01-25','CA007'),
-('CL007','Poly Programming Club','Tandon competitive programming club.','2022-12-23','CA010'),
-('CL008','Robotics Club','Relaxed learning environment for hands-on robotics.','2020-09-15','CA010'),
-('CL009','Society of Women Engineers','Empowers women to succeed and advance in engineering.','2019-09-10','CA006'),
-('CL010','Undergraduate Student Council','Primary student representatives and liaisons.','2018-09-11','CA009');
+('CL001','Society of Asian Scientists & Engineers','Equips members with the skill set to succeed in professional environments.','2020-01-15'),
+('CL002','Alpha Omega Epsilon','Professional and social sorority for women in engineering.','2019-09-10'),
+('CL003','Business & Finance Group','Empowers Tandon students with comprehensive financial education.','2021-02-20'),
+('CL004','Chemists Club','Bridges academia and industry in chemistry and chemical engineering.','2020-10-05'),
+('CL005','oSTEM at NYU','Fosters a safe, supportive environment for all students in STEM.','2019-09-10'),
+('CL006','Poly Anime Society','Promotes appreciation of Japanese culture and entertainment.','2021-01-25'),
+('CL007','Poly Programming Club','Tandon competitive programming club.','2022-12-23'),
+('CL008','Robotics Club','Relaxed learning environment for hands-on robotics.','2020-09-15'),
+('CL009','Society of Women Engineers','Empowers women to succeed and advance in engineering.','2019-09-10'),
+('CL010','Undergraduate Student Council','Primary student representatives and liaisons.','2018-09-11');
+
+INSERT INTO ClubCategory VALUES
+('CL001','CA006'),('CL001','CA010'),
+('CL002','CA009'),('CL002','CA006'),
+('CL003','CA006'),('CL003','CA003'),
+('CL004','CA010'),('CL004','CA003'),
+('CL005','CA010'),('CL005','CA005'),
+('CL006','CA007'),('CL006','CA004'),
+('CL007','CA010'),('CL007','CA003'),
+('CL008','CA010'),('CL008','CA007'),
+('CL009','CA006'),('CL009','CA009'),
+('CL010','CA009'),('CL010','CA005');
 
 INSERT INTO ClubMembership VALUES
-('CL001','US001','Officer','Active','2024-08-20'),
-('CL001','US002','Officer','Active','2024-08-25'),
+('CL001','US001','President','Active','2024-08-20'),
+('CL001','US002','VicePresident','Active','2024-08-25'),
 ('CL001','US003','Member','Active','2024-09-02'),
-('CL002','US005','Officer','Active','2024-09-12'),
+('CL002','US005','President','Active','2024-09-12'),
 ('CL002','US007','Member','Active','2024-09-18'),
-('CL003','US004','Officer','Active','2024-09-08'),
-('CL004','US006','Officer','Active','2024-09-14'),
-('CL005','US008','Officer','Active','2024-09-22'),
+('CL003','US004','President','Active','2024-09-08'),
+('CL004','US006','President','Active','2024-09-14'),
+('CL005','US008','President','Active','2024-09-22'),
 ('CL005','US001','Member','Active','2024-09-25'),
-('CL006','US009','Officer','Active','2024-09-25'),
-('CL007','US010','Officer','Active','2024-09-28'),
-('CL007','US002','Officer','Active','2024-10-01'),
-('CL008','US011','Officer','Active','2024-10-03'),
-('CL009','US012','Officer','Active','2024-10-07'),
-('CL009','US003','Officer','Active','2024-10-08'),
-('CL010','US001','Officer','Active','2024-10-10');
+('CL006','US009','President','Active','2024-09-25'),
+('CL007','US010','President','Active','2024-09-28'),
+('CL007','US002','VicePresident','Active','2024-10-01'),
+('CL008','US011','President','Active','2024-10-03'),
+('CL009','US012','President','Active','2024-10-07'),
+('CL009','US003','VicePresident','Active','2024-10-08'),
+('CL010','US001','President','Active','2024-10-10');
 
 INSERT INTO JoinRequest (RequestID, RequestStatus, RequestTime, ClubID, UserID) VALUES
 ('JR001','Pending',  '2025-01-15 10:00:00','CL001','US004'),

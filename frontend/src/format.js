@@ -1,3 +1,4 @@
+// Shared date / time formatters: "15 Jan 2026" and "15 Jan 2026, 6:00 PM".
 const DATE_OPTS      = { day: "numeric", month: "short", year: "numeric" };
 const DATETIME_OPTS  = { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" };
 const TIME_OPTS      = { hour: "numeric", minute: "2-digit" };

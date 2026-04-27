@@ -1,3 +1,4 @@
+// Per-event attendance roster with Mark Present / No show / Reset officer actions.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";

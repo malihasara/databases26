@@ -1,3 +1,4 @@
+// Auth context: hydrates the current user via /api/auth/me and exposes login / register / logout.
 import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "./api";
 

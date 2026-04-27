@@ -1,3 +1,10 @@
+"""
+export.py
+
+CSV exports for club officers / admins: members roster and per-event
+attendance.
+"""
+
 import csv
 from io import StringIO
 from flask import Blueprint, Response

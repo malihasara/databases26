@@ -1,3 +1,10 @@
+"""
+index.py
+
+Flask app factory: registers blueprints, configures CORS for the React dev origin,
+and exposes `app` for both local Flask and Vercel serverless deployment.
+"""
+
 import sys
 from pathlib import Path
 

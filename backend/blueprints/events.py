@@ -1,3 +1,10 @@
+"""
+events.py
+
+Event list/detail and student-side RSVP + self check-in. RSVP closes once
+the event ends; admins see every event but cannot RSVP.
+"""
+
 from datetime import datetime
 from flask import Blueprint, g, jsonify, request
 
@@ -17,7 +24,7 @@ def list_events():
     q = request.args.get("q", "").strip()
     sort = request.args.get("sort", "soonest")
 
-    is_faculty = g.user.get("AccountType") == "Faculty"
+    is_admin = g.user.get("AccountType") == "Admin"
     sql = [
         "SELECT e.EventID, e.EventTitle, e.EventDescription, e.EventStartTime,",
         "       e.EventEndTime, e.EventCapacity, e.EventStatus, e.EventVisibility,",
@@ -28,7 +35,7 @@ def list_events():
         "JOIN Location l  ON l.LocationID  = e.LocationID",
     ]
     params = []
-    if is_faculty:
+    if is_admin:
         sql.append("WHERE e.EventStatus = 'Scheduled'")
     else:
         sql.append("LEFT JOIN ClubMembership cm ON cm.ClubID = e.ClubID AND cm.UserID = %s AND cm.MembershipStatus='Active'")
@@ -70,8 +77,8 @@ def detail(event_id):
     if not event:
         return jsonify(error="event not found"), 404
 
-    is_faculty = g.user.get("AccountType") == "Faculty"
-    if event["EventVisibility"] == "MembersOnly" and not is_faculty:
+    is_admin = g.user.get("AccountType") == "Admin"
+    if event["EventVisibility"] == "MembersOnly" and not is_admin:
         member = query(
             "SELECT 1 FROM ClubMembership "
             "WHERE ClubID = %s AND UserID = %s AND MembershipStatus = 'Active'",
@@ -90,16 +97,63 @@ def detail(event_id):
             "SELECT 1 FROM Attendance WHERE EventID = %s AND RSVPID = %s",
             (event_id, rsvp["RSVPID"]), one=True,
         ))
-    going_count = query(
-        "SELECT COUNT(*) AS c FROM RSVP WHERE EventID = %s AND RSVPStatus = 'Going'",
+    counts = query(
+        """
+        SELECT
+          COALESCE(SUM(CASE WHEN RSVPStatus = 'Going'     THEN 1 ELSE 0 END), 0) AS going_count,
+          COALESCE(SUM(CASE WHEN RSVPStatus = 'Tentative' THEN 1 ELSE 0 END), 0) AS tentative_count,
+          COALESCE(SUM(CASE WHEN RSVPStatus = 'NotGoing'  THEN 1 ELSE 0 END), 0) AS notgoing_count,
+          COALESCE(SUM(CASE WHEN RSVPStatus = 'NoShow'    THEN 1 ELSE 0 END), 0) AS noshow_count
+        FROM RSVP WHERE EventID = %s
+        """,
+        (event_id,), one=True,
+    )
+    attended_count = query(
+        "SELECT COUNT(*) AS c FROM Attendance WHERE EventID = %s",
         (event_id,), one=True,
     )["c"]
-    return jsonify(event=event, rsvp=rsvp, checked_in=checked_in, going_count=going_count)
+
+    membership = query(
+        "SELECT MembershipRole FROM ClubMembership "
+        "WHERE ClubID = %s AND UserID = %s AND MembershipStatus = 'Active'",
+        (event["ClubID"], g.user["UserID"]), one=True,
+    )
+    is_officer = bool(membership and membership["MembershipRole"] in ("President", "VicePresident", "Officer"))
+    can_see_roster = is_admin or is_officer
+
+    roster = []
+    if can_see_roster:
+        roster = query(
+            """
+            SELECT r.RSVPID, r.RSVPStatus, u.FirstName, u.LastName, u.Email,
+                   a.CheckInTime, a.CheckInMethod
+            FROM RSVP r
+            JOIN User u ON u.UserID = r.UserID
+            LEFT JOIN Attendance a ON a.RSVPID = r.RSVPID AND a.EventID = r.EventID
+            WHERE r.EventID = %s
+            ORDER BY FIELD(r.RSVPStatus,'Going','Tentative','NoShow','NotGoing'), u.LastName
+            """,
+            (event_id,),
+        )
+    return jsonify(
+        event=event,
+        rsvp=rsvp,
+        checked_in=checked_in,
+        going_count=int(counts["going_count"]),
+        tentative_count=int(counts["tentative_count"]),
+        notgoing_count=int(counts["notgoing_count"]),
+        noshow_count=int(counts["noshow_count"]),
+        attended_count=attended_count,
+        roster=roster,
+        is_officer=is_officer,
+    )
 
 
 @bp.post("/<event_id>/rsvp")
 @login_required
 def rsvp(event_id):
+    if g.user.get("AccountType") == "Admin":
+        return jsonify(error="admins do not RSVP"), 403
     body = request.get_json(silent=True) or {}
     status = body.get("status", "Going")
     if status not in ("Going", "NotGoing", "Tentative"):

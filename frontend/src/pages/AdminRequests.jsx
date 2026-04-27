@@ -1,3 +1,4 @@
+// Officer view of join requests for a club, with Approve / Reject actions.
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";

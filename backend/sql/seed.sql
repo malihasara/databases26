@@ -23,37 +23,49 @@ INSERT INTO User VALUES
 ('US010','Jack','Brown','jack@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-09-25','Active','Student','None',NULL),
 ('US011','Kara','Davis','kara@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-01','Active','Student','None',NULL),
 ('US012','Liam','Hall','liam@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-10-05','Active','Student','None',NULL),
-('US013','Maliha','Admin','adminmaliha@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-01','Active','Faculty','None',NULL);
+('US013','Maliha','Admin','adminmaliha@nyu.edu','$2b$12$kf7YoZyG1sbvrPXvBvsFs.OkUgtKW9fdcCSNXzTnqCP8NPi1Q0Jpu','2024-08-01','Active','Admin','None',NULL);
 
 INSERT INTO Club VALUES
-('CL001','Society of Asian Scientists & Engineers','Equips members with the skill set to succeed in professional environments.','2020-01-15','CA006'),
-('CL002','Alpha Omega Epsilon','Professional and social sorority for women in engineering.','2019-09-10','CA009'),
-('CL003','Business & Finance Group','Empowers Tandon students with comprehensive financial education.','2021-02-20','CA006'),
-('CL004','Chemists Club','Bridges academia and industry in chemistry and chemical engineering.','2020-10-05','CA010'),
-('CL005','oSTEM at NYU','Fosters a safe, supportive environment for all students in STEM.','2019-09-10','CA010'),
-('CL006','Poly Anime Society','Promotes appreciation of Japanese culture and entertainment.','2021-01-25','CA007'),
-('CL007','Poly Programming Club','Tandon competitive programming club.','2022-12-23','CA010'),
-('CL008','Robotics Club','Relaxed learning environment for hands-on robotics.','2020-09-15','CA010'),
-('CL009','Society of Women Engineers','Empowers women to succeed and advance in engineering.','2019-09-10','CA006'),
-('CL010','Undergraduate Student Council','Primary student representatives and liaisons.','2018-09-11','CA009');
+('CL001','Society of Asian Scientists & Engineers','Equips members with the skill set to succeed in professional environments.','2020-01-15'),
+('CL002','Alpha Omega Epsilon','Professional and social sorority for women in engineering.','2019-09-10'),
+('CL003','Business & Finance Group','Empowers Tandon students with comprehensive financial education.','2021-02-20'),
+('CL004','Chemists Club','Bridges academia and industry in chemistry and chemical engineering.','2020-10-05'),
+('CL005','oSTEM at NYU','Fosters a safe, supportive environment for all students in STEM.','2019-09-10'),
+('CL006','Poly Anime Society','Promotes appreciation of Japanese culture and entertainment.','2021-01-25'),
+('CL007','Poly Programming Club','Tandon competitive programming club.','2022-12-23'),
+('CL008','Robotics Club','Relaxed learning environment for hands-on robotics.','2020-09-15'),
+('CL009','Society of Women Engineers','Empowers women to succeed and advance in engineering.','2019-09-10'),
+('CL010','Undergraduate Student Council','Primary student representatives and liaisons.','2018-09-11');
+
+INSERT INTO ClubCategory VALUES
+('CL001','CA006'),('CL001','CA010'),
+('CL002','CA009'),('CL002','CA006'),
+('CL003','CA006'),('CL003','CA003'),
+('CL004','CA010'),('CL004','CA003'),
+('CL005','CA010'),('CL005','CA005'),
+('CL006','CA007'),('CL006','CA004'),
+('CL007','CA010'),('CL007','CA003'),
+('CL008','CA010'),('CL008','CA007'),
+('CL009','CA006'),('CL009','CA009'),
+('CL010','CA009'),('CL010','CA005');
 
 INSERT INTO ClubMembership VALUES
-('CL001','US001','Officer','Active','2024-08-20'),
-('CL001','US002','Officer','Active','2024-08-25'),
+('CL001','US001','President','Active','2024-08-20'),
+('CL001','US002','VicePresident','Active','2024-08-25'),
 ('CL001','US003','Member','Active','2024-09-02'),
-('CL002','US005','Officer','Active','2024-09-12'),
+('CL002','US005','President','Active','2024-09-12'),
 ('CL002','US007','Member','Active','2024-09-18'),
-('CL003','US004','Officer','Active','2024-09-08'),
-('CL004','US006','Officer','Active','2024-09-14'),
-('CL005','US008','Officer','Active','2024-09-22'),
+('CL003','US004','President','Active','2024-09-08'),
+('CL004','US006','President','Active','2024-09-14'),
+('CL005','US008','President','Active','2024-09-22'),
 ('CL005','US001','Member','Active','2024-09-25'),
-('CL006','US009','Officer','Active','2024-09-25'),
-('CL007','US010','Officer','Active','2024-09-28'),
-('CL007','US002','Officer','Active','2024-10-01'),
-('CL008','US011','Officer','Active','2024-10-03'),
-('CL009','US012','Officer','Active','2024-10-07'),
-('CL009','US003','Officer','Active','2024-10-08'),
-('CL010','US001','Officer','Active','2024-10-10');
+('CL006','US009','President','Active','2024-09-25'),
+('CL007','US010','President','Active','2024-09-28'),
+('CL007','US002','VicePresident','Active','2024-10-01'),
+('CL008','US011','President','Active','2024-10-03'),
+('CL009','US012','President','Active','2024-10-07'),
+('CL009','US003','VicePresident','Active','2024-10-08'),
+('CL010','US001','President','Active','2024-10-10');
 
 INSERT INTO JoinRequest (RequestID, RequestStatus, RequestTime, ClubID, UserID) VALUES
 ('JR001','Pending',  '2025-01-15 10:00:00','CL001','US004'),

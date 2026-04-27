@@ -7,11 +7,11 @@ CREATE TABLE User (
     AccountCreationDate DATE            NOT NULL,
     AccountStatus       VARCHAR(10)     NOT NULL DEFAULT 'Active',
     AccountType         VARCHAR(10)     NOT NULL DEFAULT 'Student',
-    FacultyRequestStatus VARCHAR(10)    NOT NULL DEFAULT 'None',
-    FacultyRequestTime  TIMESTAMP       NULL,
-    CONSTRAINT chk_user_status   CHECK (AccountStatus       IN ('Active','Inactive')),
-    CONSTRAINT chk_user_type     CHECK (AccountType         IN ('Student','Faculty')),
-    CONSTRAINT chk_faculty_req   CHECK (FacultyRequestStatus IN ('None','Pending','Approved','Rejected'))
+    AdminRequestStatus  VARCHAR(10)     NOT NULL DEFAULT 'None',
+    AdminRequestTime    TIMESTAMP       NULL,
+    CONSTRAINT chk_user_status CHECK (AccountStatus      IN ('Active','Inactive')),
+    CONSTRAINT chk_user_type   CHECK (AccountType        IN ('Student','Admin')),
+    CONSTRAINT chk_admin_req   CHECK (AdminRequestStatus IN ('None','Pending','Approved','Rejected'))
 );
 
 CREATE TABLE Category (
@@ -23,8 +23,14 @@ CREATE TABLE Club (
     ClubID           CHAR(5)      PRIMARY KEY,
     ClubName         VARCHAR(80)  NOT NULL UNIQUE,
     ClubDescription  TEXT         NOT NULL,
-    ClubCreationDate DATE         NOT NULL,
-    CategoryID       CHAR(5)      NOT NULL,
+    ClubCreationDate DATE         NOT NULL
+);
+
+CREATE TABLE ClubCategory (
+    ClubID     CHAR(5) NOT NULL,
+    CategoryID CHAR(5) NOT NULL,
+    PRIMARY KEY (ClubID, CategoryID),
+    FOREIGN KEY (ClubID)     REFERENCES Club(ClubID),
     FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID)
 );
 
@@ -37,7 +43,7 @@ CREATE TABLE ClubMembership (
     PRIMARY KEY (ClubID, UserID),
     FOREIGN KEY (ClubID) REFERENCES Club(ClubID),
     FOREIGN KEY (UserID) REFERENCES User(UserID),
-    CONSTRAINT chk_membership_role   CHECK (MembershipRole   IN ('Officer','Member')),
+    CONSTRAINT chk_membership_role   CHECK (MembershipRole   IN ('President','VicePresident','Officer','Member')),
     CONSTRAINT chk_membership_status CHECK (MembershipStatus IN ('Active','Inactive'))
 );
 
@@ -122,4 +128,45 @@ CREATE TABLE Attendance (
     FOREIGN KEY (RSVPID)  REFERENCES RSVP(RSVPID),
     FOREIGN KEY (EventID) REFERENCES Event(EventID),
     CONSTRAINT chk_checkin_method CHECK (CheckInMethod IN ('Manual','QRCode','SelfCheckIn'))
+);
+
+CREATE TABLE ClubCreationRequest (
+    RequestID             CHAR(5)      PRIMARY KEY,
+    ProposedName          VARCHAR(80)  NOT NULL,
+    ProposedDescription   TEXT         NOT NULL,
+    ProposedOfficerUserID CHAR(5)      NOT NULL,
+    RequestedByUserID     CHAR(5)      NOT NULL,
+    RequestStatus         VARCHAR(10)  NOT NULL DEFAULT 'Pending',
+    RequestTime           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ResolvedTime          TIMESTAMP    NULL,
+    FOREIGN KEY (ProposedOfficerUserID) REFERENCES User(UserID),
+    FOREIGN KEY (RequestedByUserID)     REFERENCES User(UserID),
+    CONSTRAINT chk_ccr_status CHECK (RequestStatus IN ('Pending','Approved','Rejected'))
+);
+
+CREATE TABLE ClubCreationRequestCategory (
+    RequestID  CHAR(5) NOT NULL,
+    CategoryID CHAR(5) NOT NULL,
+    PRIMARY KEY (RequestID, CategoryID),
+    FOREIGN KEY (RequestID)  REFERENCES ClubCreationRequest(RequestID) ON DELETE CASCADE,
+    FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID)
+);
+
+CREATE TABLE MemberActionRequest (
+    RequestID         CHAR(5)     PRIMARY KEY,
+    ClubID            CHAR(5)     NOT NULL,
+    TargetUserID      CHAR(5)     NOT NULL,
+    ActionType        VARCHAR(20) NOT NULL,
+    TargetRole        VARCHAR(15) NULL,
+    RequestedByUserID CHAR(5)     NOT NULL,
+    RequestStatus     VARCHAR(10) NOT NULL DEFAULT 'Pending',
+    PresApproved      TINYINT(1)  NOT NULL DEFAULT 0,
+    VPApproved        TINYINT(1)  NOT NULL DEFAULT 0,
+    RequestTime       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ResolvedTime      TIMESTAMP   NULL,
+    FOREIGN KEY (ClubID)            REFERENCES Club(ClubID),
+    FOREIGN KEY (TargetUserID)      REFERENCES User(UserID),
+    FOREIGN KEY (RequestedByUserID) REFERENCES User(UserID),
+    CONSTRAINT chk_mar_status CHECK (RequestStatus IN ('Pending','Approved','Rejected','Cancelled')),
+    CONSTRAINT chk_mar_action CHECK (ActionType    IN ('Demote','Remove','PromoteOfficer','PromoteVP','PromotePresident'))
 );

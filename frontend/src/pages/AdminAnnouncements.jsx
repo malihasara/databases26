@@ -1,3 +1,4 @@
+// Officer page for posting and deleting club announcements with a Public/MembersOnly toggle.
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";

@@ -1,3 +1,4 @@
+// Login page with Student / Admin role tabs; redirects already-signed-in users home.
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
@@ -14,7 +15,7 @@ export default function Login() {
 
   if (loading) return <main className="container narrow"><p>Loading…</p></main>;
   if (user) {
-    const home = params.get("next") || (user.AccountType === "Faculty" ? "/admin-portal" : "/my-clubs");
+    const home = params.get("next") || (user.AccountType === "Admin" ? "/admin-portal" : "/my-clubs");
     return <Navigate to={home} replace />;
   }
 
@@ -23,7 +24,7 @@ export default function Login() {
     setErr("");
     try {
       const u = await login(email, password, role);
-      const next = params.get("next") || (u.AccountType === "Faculty" ? "/admin-portal" : "/my-clubs");
+      const next = params.get("next") || (u.AccountType === "Admin" ? "/admin-portal" : "/my-clubs");
       navigate(next, { replace: true });
     } catch (e) {
       setErr(e.message);
@@ -43,8 +44,8 @@ export default function Login() {
                   className={role === "Student" ? "active" : ""}
                   onClick={() => setRole("Student")}>Student</button>
           <button type="button"
-                  className={role === "Faculty" ? "active" : ""}
-                  onClick={() => setRole("Faculty")}>Faculty / Admin</button>
+                  className={role === "Admin" ? "active" : ""}
+                  onClick={() => setRole("Admin")}>Admin</button>
         </div>
 
         {err && <div className="error">{err}</div>}

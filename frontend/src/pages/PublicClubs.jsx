@@ -1,3 +1,4 @@
+// Unauthenticated public club directory.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
@@ -27,7 +28,7 @@ export default function PublicClubs() {
           {clubs.map(c => (
             <div key={c.ClubID} className="card">
               <h3>{c.ClubName}</h3>
-              <p className="muted">{c.CategoryName}</p>
+              <p className="muted">{c.Categories || "—"}</p>
               <p>{c.ClubDescription}</p>
             </div>
           ))}

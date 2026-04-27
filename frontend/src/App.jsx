@@ -1,3 +1,4 @@
+// Top-level router + nav: role-aware redirects, Admin/Student pill, theme toggle.
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./auth.jsx";
 import TorchLogo from "./components/TorchLogo.jsx";
@@ -34,7 +35,7 @@ function RequireAuth({ children, role }) {
 
 function Nav() {
   const { user, logout } = useAuth();
-  const isFaculty = user?.AccountType === "Faculty";
+  const isAdmin = user?.AccountType === "Admin";
   return (
     <header className="topbar">
       <Link className="brand" to="/">
@@ -44,15 +45,15 @@ function Nav() {
       <nav>
         {user ? (
           <>
-            {isFaculty
+            {isAdmin
               ? <NavLink to="/admin-portal">Admin Portal</NavLink>
               : <NavLink to="/my-clubs">My Clubs</NavLink>}
             <NavLink to="/clubs">Clubs</NavLink>
             <NavLink to="/events">Events</NavLink>
             <span className="who">
               {user.FirstName}
-              <span className={isFaculty ? "faculty-pill" : "student-pill"}>
-                {isFaculty ? "Faculty" : "Student"}
+              <span className={isAdmin ? "admin-pill" : "student-pill"}>
+                {isAdmin ? "Admin" : "Student"}
               </span>
             </span>
             <button className="link" onClick={logout}>Log out</button>
@@ -76,7 +77,7 @@ function HomeRedirect() {
   const { user, loading } = useAuth();
   if (loading) return <main className="container"><p>Loading…</p></main>;
   if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to={user.AccountType === "Faculty" ? "/admin-portal" : "/my-clubs"} replace />;
+  return <Navigate to={user.AccountType === "Admin" ? "/admin-portal" : "/my-clubs"} replace />;
 }
 
 
@@ -104,7 +105,7 @@ export default function App() {
         <Route path="/admin/:clubId/events/:eventId/attendance" element={<RequireAuth><AdminAttendance /></RequireAuth>} />
         <Route path="/admin/:clubId/announcements"              element={<RequireAuth><AdminAnnouncements /></RequireAuth>} />
 
-        <Route path="/admin-portal/*" element={<RequireAuth role="Faculty"><AdminPortal /></RequireAuth>} />
+        <Route path="/admin-portal/*" element={<RequireAuth role="Admin"><AdminPortal /></RequireAuth>} />
 
         <Route path="/public/clubs"  element={<PublicClubs />} />
         <Route path="/public/events" element={<PublicEvents />} />

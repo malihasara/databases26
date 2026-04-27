@@ -1,3 +1,10 @@
+"""
+announcements.py
+
+Club announcement endpoints: list, post (officer-only), and delete.
+Announcements carry a Public/MembersOnly visibility flag.
+"""
+
 from datetime import date
 from flask import Blueprint, g, jsonify, request
 

@@ -1,3 +1,4 @@
+// Registration page with Student / Admin tabs; Admin requests are queued for an existing admin to approve.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
@@ -17,7 +18,7 @@ export default function Register() {
     setErr("");
     try {
       const d = await register({ ...form, requested_account_type: requestedRole });
-      navigate(d.faculty_request_pending ? "/my-clubs?facultyPending=1" : "/my-clubs", { replace: true });
+      navigate(d.admin_request_pending ? "/my-clubs?adminPending=1" : "/my-clubs", { replace: true });
     } catch (e) {
       setErr(e.message);
     }
@@ -36,14 +37,14 @@ export default function Register() {
                   className={requestedRole === "Student" ? "active" : ""}
                   onClick={() => setRequestedRole("Student")}>Student</button>
           <button type="button"
-                  className={requestedRole === "Faculty" ? "active" : ""}
-                  onClick={() => setRequestedRole("Faculty")}>Faculty / Admin</button>
+                  className={requestedRole === "Admin" ? "active" : ""}
+                  onClick={() => setRequestedRole("Admin")}>Admin</button>
         </div>
 
-        {requestedRole === "Faculty" && (
+        {requestedRole === "Admin" && (
           <div className="info-banner">
-            Faculty access requires approval. Your account will be created as a student
-            and a request will be sent to existing faculty for review.
+            Admin access requires approval. Your account will be created as a student
+            and a request will be sent to existing admins for review.
           </div>
         )}
 
@@ -57,7 +58,7 @@ export default function Register() {
           <label>Email<input type="email" value={form.email} onChange={set("email")} required /></label>
           <label>Password<input type="password" minLength={8} value={form.password} onChange={set("password")} required /></label>
           <button type="submit" className="primary block">
-            {requestedRole === "Faculty" ? "Sign up & request faculty access" : "Create student account"}
+            {requestedRole === "Admin" ? "Sign up & request admin access" : "Create student account"}
           </button>
         </form>
 

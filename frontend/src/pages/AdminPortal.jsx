@@ -1,17 +1,22 @@
+// Faculty/Admin platform-wide portal: overview, clubs, club requests, users, admin approvals, attendance.
 import { useEffect, useState } from "react";
 import { Link, NavLink, Route, Routes } from "react-router-dom";
 import { api } from "../api";
 import { fmtDate, fmtDateTime } from "../format.js";
 
 
-function PortalNav({ pendingCount }) {
+function PortalNav({ pendingCount, clubReqCount }) {
   return (
     <nav className="subnav">
       <NavLink to="/admin-portal" end>Overview</NavLink>
       <NavLink to="/admin-portal/clubs">Clubs</NavLink>
+      <NavLink to="/admin-portal/club-requests">
+        Club requests
+        {clubReqCount > 0 && <span className="role-pill" style={{ marginLeft: "0.5rem" }}>{clubReqCount}</span>}
+      </NavLink>
       <NavLink to="/admin-portal/users">Users</NavLink>
       <NavLink to="/admin-portal/approvals">
-        Faculty approvals
+        Admin approvals
         {pendingCount > 0 && <span className="role-pill" style={{ marginLeft: "0.5rem" }}>{pendingCount}</span>}
       </NavLink>
       <NavLink to="/admin-portal/attendance">Attendance</NavLink>
@@ -29,7 +34,7 @@ function Overview() {
   const { counts, clubs } = data;
   const stats = [
     ["Users",        counts.users],
-    ["Faculty",      counts.faculty],
+    ["Admins",       counts.admins],
     ["Clubs",        counts.clubs],
     ["Scheduled events", counts.scheduled_events],
     ["Going RSVPs",  counts.going_rsvps],
@@ -47,12 +52,12 @@ function Overview() {
       </div>
       <h2 className="section-h">All clubs</h2>
       <table className="table">
-        <thead><tr><th>Club</th><th>Category</th><th>Members</th><th>Events</th><th>Check-ins</th><th></th></tr></thead>
+        <thead><tr><th>Club</th><th>Categories</th><th>Members</th><th>Events</th><th>Check-ins</th><th></th></tr></thead>
         <tbody>
           {clubs.map(c => (
             <tr key={c.ClubID}>
               <td>{c.ClubName}</td>
-              <td>{c.CategoryName}</td>
+              <td>{c.Categories || <span className="muted">—</span>}</td>
               <td>{c.members}</td>
               <td>{c.events}</td>
               <td>{c.check_ins}</td>
@@ -91,8 +96,8 @@ function Users() {
   return (
     <>
       <p className="muted">
-        New users sign up themselves on the registration page. Faculty access requests appear under
-        <Link to="/admin-portal/approvals"> Faculty approvals</Link>.
+        New users sign up themselves on the registration page. Admin access requests appear under
+        <Link to="/admin-portal/approvals"> Admin approvals</Link>.
       </p>
       <form onSubmit={e => { e.preventDefault(); load(); }} className="filters">
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name or email…" />
@@ -111,7 +116,7 @@ function Users() {
                 <td>
                   <select value={u.AccountType} onChange={e => setRole(u.UserID, e.target.value)}>
                     <option value="Student">Student</option>
-                    <option value="Faculty">Faculty</option>
+                    <option value="Admin">Admin</option>
                   </select>
                 </td>
                 <td>
@@ -131,27 +136,26 @@ function Users() {
 }
 
 
-function FacultyApprovals({ onChange }) {
+function AdminApprovals({ onChange }) {
   const [rows, setRows] = useState(null);
   const [err, setErr] = useState("");
 
-  const load = () => api.get("/api/admin-portal/faculty-requests")
+  const load = () => api.get("/api/admin-portal/admin-requests")
     .then(d => { setRows(d.requests); onChange?.(d.requests.length); })
     .catch(e => setErr(e.message));
   useEffect(() => { load(); }, []);
 
   const decide = async (uid, action) => {
     setErr("");
-    try { await api.post(`/api/admin-portal/faculty-requests/${uid}/${action}`); load(); }
+    try { await api.post(`/api/admin-portal/admin-requests/${uid}/${action}`); load(); }
     catch (e) { setErr(e.message); }
   };
 
   if (err) return <div className="error">{err}</div>;
   if (!rows) return <p>Loading…</p>;
   if (rows.length === 0) {
-    return <div className="empty"><p>No pending faculty access requests.</p></div>;
+    return <div className="empty"><p>No pending admin access requests.</p></div>;
   }
-
   return (
     <ul className="list">
       {rows.map(r => (
@@ -160,12 +164,57 @@ function FacultyApprovals({ onChange }) {
             <strong>{r.FirstName} {r.LastName}</strong>
             <span className="muted"> · {r.Email}</span>
             <div className="muted small">
-              requested {r.FacultyRequestTime ? fmtDateTime(r.FacultyRequestTime) : "—"}
+              requested {r.AdminRequestTime ? fmtDateTime(r.AdminRequestTime) : "—"}
             </div>
           </div>
           <div className="actions">
-            <button onClick={() => decide(r.UserID, "approve")}>Approve faculty access</button>
+            <button onClick={() => decide(r.UserID, "approve")}>Approve admin access</button>
             <button className="danger" onClick={() => decide(r.UserID, "reject")}>Reject</button>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
+function ClubRequests({ onChange }) {
+  const [rows, setRows] = useState(null);
+  const [err, setErr] = useState("");
+
+  const load = () => api.get("/api/admin-portal/club-requests")
+    .then(d => { setRows(d.requests); onChange?.(d.requests.length); })
+    .catch(e => setErr(e.message));
+  useEffect(() => { load(); }, []);
+
+  const decide = async (id, action) => {
+    setErr("");
+    try { await api.post(`/api/admin-portal/club-requests/${id}/${action}`); load(); }
+    catch (e) { setErr(e.message); }
+  };
+
+  if (err) return <div className="error">{err}</div>;
+  if (!rows) return <p>Loading…</p>;
+  if (rows.length === 0) return <div className="empty"><p>No pending club requests.</p></div>;
+
+  return (
+    <ul className="list">
+      {rows.map(r => (
+        <li key={r.RequestID}>
+          <div className="request-row">
+            <div>
+              <strong>{r.ProposedName}</strong>
+              <span className="muted"> · {r.Categories || "no categories"}</span>
+              <div className="muted small">
+                requested by {r.RequesterFirstName} {r.RequesterLastName} ({r.RequesterEmail}) ·
+                proposed officer: {r.OfficerFirstName} {r.OfficerLastName} · {fmtDateTime(r.RequestTime)}
+              </div>
+              <p>{r.ProposedDescription}</p>
+            </div>
+            <div className="actions">
+              <button onClick={() => decide(r.RequestID, "approve")}>Approve & create club</button>
+              <button className="danger" onClick={() => decide(r.RequestID, "reject")}>Reject</button>
+            </div>
           </div>
         </li>
       ))}
@@ -208,7 +257,7 @@ function Clubs() {
   const [err, setErr] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
-  const [form, setForm] = useState({ name: "", description: "", category_id: "", officer_user_id: "" });
+  const [form, setForm] = useState({ name: "", description: "", category_ids: [], officer_user_id: "" });
 
   const load = () => {
     api.get("/api/admin-portal/club-options").then(setOpts).catch(e => setErr(e.message));
@@ -216,13 +265,21 @@ function Clubs() {
   };
   useEffect(() => { load(); }, []);
 
+  const toggleCategory = (cid) =>
+    setForm(f => ({
+      ...f,
+      category_ids: f.category_ids.includes(cid)
+        ? f.category_ids.filter(x => x !== cid)
+        : [...f.category_ids, cid],
+    }));
+
   const onCreate = async (e) => {
     e.preventDefault();
     setErr("");
     try {
       await api.post("/api/admin-portal/clubs", form);
       setShowCreate(false);
-      setForm({ name: "", description: "", category_id: "", officer_user_id: "" });
+      setForm({ name: "", description: "", category_ids: [], officer_user_id: "" });
       load();
     } catch (e) { setErr(e.message); }
   };
@@ -251,20 +308,24 @@ function Clubs() {
         <form className="card create-user" onSubmit={onCreate}>
           <label>Club name<input value={form.name} onChange={e => setForm({...form, name: e.target.value})} required /></label>
           <label>Description<textarea rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} required /></label>
-          <div className="form-row">
-            <label>Category
-              <select value={form.category_id} onChange={e => setForm({...form, category_id: e.target.value})} required>
-                <option value="">—</option>
-                {opts?.categories.map(c => <option key={c.CategoryID} value={c.CategoryID}>{c.CategoryName}</option>)}
-              </select>
-            </label>
-            <label>Officer
-              <select value={form.officer_user_id} onChange={e => setForm({...form, officer_user_id: e.target.value})} required>
-                <option value="">—</option>
-                {opts?.owners.map(o => <option key={o.UserID} value={o.UserID}>{o.FirstName} {o.LastName} · {o.Email}</option>)}
-              </select>
-            </label>
-          </div>
+          <label>Categories (pick one or more)
+            <div className="checkbox-grid">
+              {opts?.categories.map(c => (
+                <label key={c.CategoryID} className="check">
+                  <input type="checkbox"
+                         checked={form.category_ids.includes(c.CategoryID)}
+                         onChange={() => toggleCategory(c.CategoryID)} />
+                  <span>{c.CategoryName}</span>
+                </label>
+              ))}
+            </div>
+          </label>
+          <label>Initial President
+            <select value={form.officer_user_id} onChange={e => setForm({...form, officer_user_id: e.target.value})} required>
+              <option value="">—</option>
+              {opts?.owners.map(o => <option key={o.UserID} value={o.UserID}>{o.FirstName} {o.LastName} · {o.Email}</option>)}
+            </select>
+          </label>
           <button type="submit" className="primary">Create club</button>
         </form>
       )}
@@ -272,12 +333,12 @@ function Clubs() {
       {err && <div className="error">{err}</div>}
       {!overview ? <p>Loading…</p> : (
         <table className="table">
-          <thead><tr><th>Club</th><th>Category</th><th>Members</th><th>Events</th><th></th></tr></thead>
+          <thead><tr><th>Club</th><th>Categories</th><th>Members</th><th>Events</th><th></th></tr></thead>
           <tbody>
             {overview.clubs.map(c => (
               <tr key={c.ClubID}>
                 <td>{c.ClubName}</td>
-                <td>{c.CategoryName}</td>
+                <td>{c.Categories || <span className="muted">—</span>}</td>
                 <td>{c.members}</td>
                 <td>{c.events}</td>
                 <td>
@@ -316,24 +377,30 @@ function Clubs() {
 
 export default function AdminPortal() {
   const [pendingCount, setPendingCount] = useState(0);
+  const [clubReqCount, setClubReqCount] = useState(0);
+
   useEffect(() => {
-    api.get("/api/admin-portal/faculty-requests")
+    api.get("/api/admin-portal/admin-requests")
       .then(d => setPendingCount(d.requests.length))
       .catch(() => setPendingCount(0));
+    api.get("/api/admin-portal/club-requests")
+      .then(d => setClubReqCount(d.requests.length))
+      .catch(() => setClubReqCount(0));
   }, []);
 
   return (
     <main className="container">
       <header className="page-head">
         <h1>Admin Portal</h1>
-        <p className="muted">Faculty controls for users, clubs, and attendance across the platform.</p>
+        <p className="muted">Admin controls for users, clubs, and attendance across the platform.</p>
       </header>
-      <PortalNav pendingCount={pendingCount} />
+      <PortalNav pendingCount={pendingCount} clubReqCount={clubReqCount} />
       <Routes>
         <Route index               element={<Overview />} />
         <Route path="clubs"        element={<Clubs />} />
+        <Route path="club-requests" element={<ClubRequests onChange={setClubReqCount} />} />
         <Route path="users"        element={<Users />} />
-        <Route path="approvals"    element={<FacultyApprovals onChange={setPendingCount} />} />
+        <Route path="approvals"    element={<AdminApprovals onChange={setPendingCount} />} />
         <Route path="attendance"   element={<Attendance />} />
       </Routes>
     </main>

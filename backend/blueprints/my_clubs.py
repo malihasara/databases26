@@ -1,3 +1,10 @@
+"""
+my_clubs.py
+
+The signed-in user's club roster, split into clubs they lead vs. clubs they're
+a member of, plus their pending join + club-creation requests.
+"""
+
 from flask import Blueprint, g, jsonify
 
 from auth import login_required
@@ -13,16 +20,20 @@ def list_my_clubs():
     rows = query(
         """
         SELECT c.ClubID, c.ClubName, c.ClubDescription,
-               cm.MembershipRole, cm.MembershipStatus, cat.CategoryName
+               cm.MembershipRole, cm.MembershipStatus,
+               GROUP_CONCAT(DISTINCT cat.CategoryName ORDER BY cat.CategoryName SEPARATOR ', ') AS Categories
         FROM ClubMembership cm
-        JOIN Club c       ON c.ClubID      = cm.ClubID
-        JOIN Category cat ON cat.CategoryID = c.CategoryID
+        JOIN Club c ON c.ClubID = cm.ClubID
+        LEFT JOIN ClubCategory cc ON cc.ClubID = c.ClubID
+        LEFT JOIN Category cat   ON cat.CategoryID = cc.CategoryID
         WHERE cm.UserID = %s AND cm.MembershipStatus = 'Active'
+        GROUP BY c.ClubID, c.ClubName, c.ClubDescription, cm.MembershipRole, cm.MembershipStatus
         ORDER BY c.ClubName
         """,
         (g.user["UserID"],),
     )
-    managing = [r for r in rows if r["MembershipRole"] == "Officer"]
+    leaders = ("President", "VicePresident", "Officer")
+    managing = [r for r in rows if r["MembershipRole"] in leaders]
     member   = [r for r in rows if r["MembershipRole"] == "Member"]
 
     pending = query(
@@ -35,4 +46,13 @@ def list_my_clubs():
         """,
         (g.user["UserID"],),
     )
-    return jsonify(managing=managing, member=member, pending=pending)
+    pending_clubs = query(
+        """
+        SELECT RequestID, ProposedName, RequestStatus, RequestTime
+        FROM ClubCreationRequest
+        WHERE RequestedByUserID = %s AND RequestStatus = 'Pending'
+        ORDER BY RequestTime DESC
+        """,
+        (g.user["UserID"],),
+    )
+    return jsonify(managing=managing, member=member, pending=pending, pending_clubs=pending_clubs)
